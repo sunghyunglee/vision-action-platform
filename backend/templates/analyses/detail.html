@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}분석 #{{ job.pk }}{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>분석 #{{ job.pk }} {% if job.title %}· {{ job.title }}{% endif %}</h1>
+  <dl class="grid">
+    <dt>요청 사용자</dt><dd>{{ job.user.username }}</dd>
+    <dt>입력 방식</dt><dd>{{ job.get_input_type_display }}{% if job.capture_seconds %} ({{ job.capture_seconds }}초 수집){% endif %}</dd>
+    <dt>상태</dt><dd><span class="badge s-{{ job.status }}">{{ job.get_status_display }}</span></dd>
+    <dt>수행하려던 동작</dt><dd>{{ job.get_expected_action_display|default:"선택 안 함" }} <span class="muted">(사용자 입력, 검증된 정답 아님)</span></dd>
+    <dt>영상</dt><dd>{% if job.video_frames %}{{ job.video_frames }}프레임 · {{ job.video_fps|floatformat:1 }}fps · {{ job.video_duration_sec|floatformat:1 }}초{% else %}-{% endif %}</dd>
+    <dt>AI 추론 시간</dt><dd>{% if job.processing_ms %}{{ job.processing_ms }} ms{% else %}-{% endif %}</dd>
+    <dt>전체 소요 시간</dt><dd>{% if job.total_seconds %}{{ job.total_seconds }} 초{% else %}-{% endif %}</dd>
+    <dt>요청 / 완료</dt><dd>{{ job.created_at|date:"Y-m-d H:i:s" }} / {{ job.finished_at|date:"Y-m-d H:i:s"|default:"-" }}</dd>
+    {% if job.memo %}<dt>메모</dt><dd>{{ job.memo|linebreaksbr }}</dd>{% endif %}
+  </dl>
+  {% if job.error_message %}<p class="error">실패 사유: {{ job.error_message }}</p>{% endif %}
+  {% if job.result_message %}<p class="muted">{{ job.result_message }}</p>{% endif %}
+</section>
+
+<section class="card">
+  <h2>사람별 예측</h2>
+  <table class="table">
+    <thead><tr><th>Track ID</th><th>Action</th><th>Confidence</th><th>Window</th><th>프레임</th><th>판단</th></tr></thead>
+    <tbody>
+    {% for p in job.predictions.all %}
+      <tr>
+        <td>{{ p.track_id }}</td>
+        <td>{{ p.action_label }} <span class="muted">{{ p.get_action_label_display }}</span></td>
+        <td>{{ p.confidence|floatformat:3 }}</td>
+        <td>{{ p.window_count }}</td>
+        <td>{{ p.frame_count }}</td>
+        <td>{% if p.is_uncertain %}<span class="badge warn">판단 불확실</span>{% else %}<span class="badge ok">신뢰</span>{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="muted">예측 결과가 없습니다.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted">Confidence {{ low_conf }} 미만은 '판단 불확실'로 표시합니다. 촬영 조건이 다른 두 입력의 Confidence를 정확도 비교로 해석하지 마세요.</p>
+  {% if job.video_file %}<video src="{{ job.video_file.url }}" controls class="video"></video>{% endif %}
+</section>
+<p><a href="{% url 'analyses:index' %}">← 분석 화면으로</a></p>
+{% endblock %}

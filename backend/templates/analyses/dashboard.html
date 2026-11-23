@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}관리자 대시보드{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>관리자 대시보드</h1>
+  <div class="stats">
+    <div><b>{{ total_jobs }}</b><span>전체 작업</span></div>
+    <div><b>{{ total_predictions }}</b><span>사람별 예측</span></div>
+  </div>
+</section>
+<div class="charts">
+  <section class="card"><h2>동작별 예측 건수</h2><canvas id="action-chart"></canvas></section>
+  <section class="card"><h2>작업 상태별 건수</h2><canvas id="status-chart"></canvas></section>
+  <section class="card"><h2>입력 방식 비율 (선택)</h2><canvas id="input-chart"></canvas></section>
+  <section class="card"><h2>평균 AI 추론 시간 (선택)</h2><canvas id="time-chart"></canvas></section>
+</div>
+<section class="card">
+  <h2>최근 작업</h2>
+  <table class="table">
+    <thead><tr><th>#</th><th>사용자</th><th>입력</th><th>상태</th><th>생성</th></tr></thead>
+    <tbody>
+    {% for j in recent_jobs %}
+      <tr><td><a href="{% url 'analyses:detail' j.pk %}">{{ j.pk }}</a></td><td>{{ j.user.username }}</td>
+        <td>{{ j.get_input_type_display }}</td><td><span class="badge s-{{ j.status }}">{{ j.get_status_display }}</span></td>
+        <td>{{ j.created_at|date:"m-d H:i" }}</td></tr>
+    {% empty %}<tr><td colspan="5" class="muted">작업이 없습니다.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+{{ chart_data|json_script:"chart-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}
