@@ -1,0 +1,29 @@
+{
+  "project_name": "subject10_pose_action",
+  "pose_model": "yolo11n-pose.pt",
+  "image_size": 640,
+  "person_confidence": 0.25,
+  "keypoint_confidence": 0.5,
+  "device": "cpu",
+  "day06_baseline": {
+    "sequence_steps": 30,
+    "min_valid_frames": 10,
+    "random_state": 42,
+    "n_estimators": 300,
+    "max_depth": null
+  },
+  "day07_realtime": {
+    "window_seconds": 5.0,
+    "min_window_fill_ratio": 0.8,
+    "min_valid_feature_ratio": 0.6,
+    "min_valid_features": 10,
+    "prediction_interval_sec": 0.25,
+    "confidence_threshold": 0.55,
+    "stabilization_buffer": 5,
+    "stabilization_min_votes": 3
+  },
+  "day08_multi_person": {
+    "tracker": "bytetrack.yaml",
+    "lost_timeout_seconds": 2.0
+  }
+}
