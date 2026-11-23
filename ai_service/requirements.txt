@@ -1,0 +1,15 @@
+# 버전은 원본 프로젝트(~/ai_vision/subject10_pose_action, Python 3.11)의 uv.lock과 맞춘다.
+# 특히 scikit-learn·numpy·joblib이 다르면 joblib 모델 로드가 실패하거나 경고가 날 수 있다.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+numpy==2.4.6
+pandas==3.1.1            # src/sequence_utils.py가 import
+scikit-learn==1.9.1
+joblib==1.6.0
+ultralytics==8.4.203
+lap>=0.5.12              # ByteTrack(사람 추적)에 필요. 없으면 실행 중 자동설치를 시도해 컨테이너에서 실패할 수 있음
+opencv-python-headless>=4.10
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0
+torchvision==0.29.2
