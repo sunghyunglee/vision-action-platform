@@ -402,3 +402,36 @@ class QueryCountTests(TestCase):
         with CaptureQueriesContext(connection) as ten:
             self.client.get(url)
         self.assertEqual(len(five.captured_queries), len(ten.captured_queries))
+
+
+class SharedPiecesTests(TestCase):
+    """화면 여러 곳이 같은 조각을 쓰는지: 상태 배지 템플릿 · 판단 불확실 기준 · 카메라 안내 문구 · 개수 집계."""
+
+    def setUp(self):
+        self.staff = User.objects.create_user("piece", password="Str0ng-pass-123", is_staff=True)
+        self.job = AnalysisJob.objects.create(user=self.staff, input_type="UPLOAD", status="SUCCESS")
+        PersonPrediction.objects.create(job=self.job, track_id=1, action_label="wave", confidence=0.45)
+        self.client.force_login(self.staff)
+
+    def test_status_badge_same_on_three_pages(self):
+        badge = '<span class="badge s-SUCCESS">완료</span>'
+        for url in ("/", f"/analyses/{self.job.pk}/", "/dashboard/"):
+            self.assertContains(self.client.get(url), badge, html=True, msg_prefix=url)
+
+    def test_uncertain_comes_from_api_not_page(self):
+        # 분석 화면은 기준값을 따로 넘기지 않고, JS는 API의 is_uncertain을 쓴다
+        self.assertNotContains(self.client.get("/"), 'id="low-conf"')
+        pred = self.client.get(f"/api/v1/analyses/{self.job.pk}/").json()["predictions"][0]
+        self.assertTrue(pred["is_uncertain"])  # 0.45 < 0.55
+
+    def test_camera_message_shared(self):
+        from . import camera_capture, stream_views
+
+        self.assertIs(stream_views.CAMERA_CONNECT_FAILED, camera_capture.CAMERA_CONNECT_FAILED)
+
+    def test_count_by(self):
+        from .page_views import _count_by
+
+        AnalysisJob.objects.create(user=self.staff, input_type="WEBCAM", status="FAILURE")
+        self.assertEqual(_count_by(AnalysisJob.objects, "status"), {"SUCCESS": 1, "FAILURE": 1})
+        self.assertEqual(_count_by(PersonPrediction.objects, "action_label"), {"wave": 1})
