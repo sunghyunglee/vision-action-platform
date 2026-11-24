@@ -6,7 +6,7 @@
   <dl class="grid">
     <dt>요청 사용자</dt><dd>{{ job.user.username }}</dd>
     <dt>입력 방식</dt><dd>{{ job.get_input_type_display }}{% if job.capture_seconds %} ({{ job.capture_seconds }}초 수집){% endif %}</dd>
-    <dt>상태</dt><dd><span class="badge s-{{ job.status }}">{{ job.get_status_display }}</span></dd>
+    <dt>상태</dt><dd>{% include "analyses/_status_badge.html" %}</dd>
     <dt>수행하려던 동작</dt><dd>{{ job.get_expected_action_display|default:"선택 안 함" }} <span class="muted">(사용자 입력, 검증된 정답 아님)</span></dd>
     <dt>영상</dt><dd>{% if job.video_frames %}{{ job.video_frames }}프레임 · {{ job.video_fps|floatformat:1 }}fps · {{ job.video_duration_sec|floatformat:1 }}초{% else %}-{% endif %}</dd>
     <dt>AI 추론 시간</dt><dd>{% if job.processing_ms %}{{ job.processing_ms }} ms{% else %}-{% endif %}</dd>

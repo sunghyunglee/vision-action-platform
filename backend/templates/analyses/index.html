@@ -91,7 +91,7 @@
         <td><a href="{% url 'analyses:detail' job.pk %}">{{ job.pk }}</a></td>
         <td>{{ job.title|default:"-" }}</td>
         <td>{{ job.get_input_type_display }}</td>
-        <td><span class="badge s-{{ job.status }}">{{ job.get_status_display }}</span></td>
+        <td>{% include "analyses/_status_badge.html" %}</td>
         <td>{% for p in job.predictions.all %}#{{ p.track_id }} {{ p.action_label }} ({{ p.confidence|floatformat:2 }}){% if not forloop.last %}, {% endif %}{% empty %}-{% endfor %}</td>
         <td>{{ job.created_at|date:"m-d H:i" }}</td>
       </tr>
