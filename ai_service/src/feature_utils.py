@@ -20,8 +20,6 @@ import numpy as np
 #
 # Left / Right는 사람 본인 기준입니다.
 
-NOSE = 0
-
 LEFT_SHOULDER = 5
 RIGHT_SHOULDER = 6
 
@@ -39,27 +37,6 @@ RIGHT_KNEE = 14
 
 LEFT_ANKLE = 15
 RIGHT_ANKLE = 16
-
-
-# ==================================================
-# [03] 좌우 관절 쌍 정의
-# ==================================================
-# 좌우 반전할 때 관절 번호도 교환해야 합니다.
-#
-# 예: Left Shoulder(5) ↔ Right Shoulder(6)
-#
-# 0번 Nose는 좌우 쌍이 없으므로 제외합니다.
-
-LEFT_RIGHT_PAIRS = [
-    (1, 2),
-    (3, 4),
-    (5, 6),
-    (7, 8),
-    (9, 10),
-    (11, 12),
-    (13, 14),
-    (15, 16),
-]
 
 
 # ==================================================
@@ -334,62 +311,6 @@ def normalize_by_shoulder_width(
 
 
 # ==================================================
-# [10] flip_keypoints_horizontal()
-#      - Keypoint 좌우 반전
-# ==================================================
-# 정규화된 Keypoint를 좌우 반전합니다.
-#
-# 1. x 좌표의 부호 반전
-# 2. Left / Right 관절 번호 교환
-#
-# 좌우 반전에서는 위치뿐 아니라
-# 관절의 의미도 함께 바꾸어야 합니다.
-
-def flip_keypoints_horizontal(
-    normalized_keypoints,
-):
-    """
-    몸 중심 기준 정규화된 좌표를
-    좌우 반전합니다.
-
-    1. x 좌표의 부호를 반전
-    2. Left/Right 관절 의미도 교환
-    """
-
-    # 원본을 변경하지 않도록 복사합니다.
-    flipped = np.asarray(
-        normalized_keypoints,
-        dtype=np.float32,
-    ).copy()
-
-    # 모든 관절의 x 좌표 부호를 반전합니다.
-    flipped[:, 0] *= -1.0
-
-    # [03]에 정의한 좌우 관절 쌍을 순회합니다.
-    for left_id, right_id in (
-        LEFT_RIGHT_PAIRS
-    ):
-
-        # 왼쪽 관절 좌표를 임시 저장합니다.
-        temp = flipped[
-            left_id
-        ].copy()
-
-        # 왼쪽 관절에 오른쪽 좌표를 넣습니다.
-        flipped[left_id] = (
-            flipped[right_id]
-        )
-
-        # 오른쪽 관절에 기존 왼쪽 좌표를 넣습니다.
-        flipped[right_id] = (
-            temp
-        )
-
-    # 좌우 반전된 Keypoint 반환
-    return flipped
-
-
-# ==================================================
 # [11] selected_joint_angles()
 #      - 팔꿈치·무릎 각도 4개 계산
 # ==================================================
@@ -483,4 +404,3 @@ def selected_joint_angles(
             )
         ),
     }
-    
