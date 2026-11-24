@@ -66,7 +66,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
-ASGI_APPLICATION = "config.asgi.application"
 
 # ── DB: POSTGRES_HOST가 있으면 PostgreSQL, 없으면 로컬 SQLite ──
 if os.environ.get("POSTGRES_HOST"):

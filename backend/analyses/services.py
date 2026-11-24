@@ -16,12 +16,6 @@ class AIServiceError(Exception):
     """AI 서버 호출 실패. 메시지는 사용자 화면에 그대로 보여 줄 수 있게 쓴다."""
 
 
-def check_health():
-    res = requests.get(f"{settings.AI_SERVICE_URL}/health", timeout=5)
-    res.raise_for_status()
-    return res.json()
-
-
 def predict_video(path, job_id=None):
     """job_id를 X-Job-ID 헤더로 같이 보내 FastAPI 로그에서도 같은 작업을 찾을 수 있게 한다."""
     url = f"{settings.AI_SERVICE_URL}/predict/video"
