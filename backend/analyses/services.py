@@ -22,14 +22,17 @@ def check_health():
     return res.json()
 
 
-def predict_video(path):
+def predict_video(path, job_id=None):
+    """job_id를 X-Job-ID 헤더로 같이 보내 FastAPI 로그에서도 같은 작업을 찾을 수 있게 한다."""
     url = f"{settings.AI_SERVICE_URL}/predict/video"
     path = Path(path)
+    headers = {"X-Job-ID": str(job_id)} if job_id is not None else {}
     try:
         with path.open("rb") as f:
             res = requests.post(
                 url,
                 files={"file": (path.name, f, "video/mp4")},
+                headers=headers,
                 timeout=(5, settings.AI_SERVICE_TIMEOUT),  # (연결, 응답) 타임아웃
             )
     except requests.Timeout as e:

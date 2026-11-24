@@ -5,6 +5,7 @@
       실패하면 어디서든 FAILURE + error_message 저장
 """
 import logging
+import time
 from pathlib import Path
 
 from celery import shared_task
@@ -21,12 +22,13 @@ logger = logging.getLogger(__name__)
 VALID_LABELS = set(ActionLabel.values)
 
 
-def _fail(job, message):
+def _fail(job, message, t0=None):
     job.status = AnalysisJob.Status.FAILURE
     job.error_message = message[:2000]
     job.finished_at = timezone.now()
     job.save(update_fields=["status", "error_message", "finished_at"])
-    logger.warning("job#%s 실패: %s", job.pk, message)
+    took = f" (총 {time.monotonic() - t0:.1f}s)" if t0 is not None else ""
+    logger.warning("job#%s 실패%s: %s", job.pk, took, message)
 
 
 def _prepare_video(job):
@@ -96,16 +98,28 @@ def run_analysis(self, job_id):
         job.celery_task_id = self.request.id
     job.save(update_fields=["status", "started_at", "celery_task_id"])
 
+    # 작업 1건을 로그로 끝까지 따라갈 수 있게: job id · 단계 · 걸린 시간을 남긴다
+    t0 = time.monotonic()
+    wait_s = (job.started_at - job.created_at).total_seconds()
+    logger.info("job#%s 시작 input=%s task=%s 대기열 대기 %.1fs", job_id, job.input_type, job.celery_task_id, wait_s)
     try:
         video_path = _prepare_video(job)
-        data = predict_video(video_path)
+        t1 = time.monotonic()
+        logger.info("job#%s 영상 확보 %.1fs (%s)", job_id, t1 - t0, video_path.name)
+
+        data = predict_video(video_path, job_id=job_id)
+        t2 = time.monotonic()
+        logger.info("job#%s AI 추론 응답 %.1fs predictions=%d processing_ms=%s",
+                    job_id, t2 - t1, len(data.get("predictions") or []), data.get("processing_ms"))
+
         save_result(job, data)
+        logger.info("job#%s 저장 완료 %s 총 %.1fs", job_id, job.status, time.monotonic() - t0)
     except (CameraError, AIServiceError) as e:
-        _fail(job, str(e))
+        _fail(job, str(e), t0)
     except SoftTimeLimitExceeded:
-        _fail(job, f"작업 제한 시간({settings.CELERY_TASK_SOFT_TIME_LIMIT}초)을 넘었습니다.")
+        _fail(job, f"작업 제한 시간({settings.CELERY_TASK_SOFT_TIME_LIMIT}초)을 넘었습니다.", t0)
     except Exception as e:  # 예상하지 못한 오류도 FAILURE로 남긴다
         logger.exception("job#%s 처리 중 예외", job_id)
-        _fail(job, f"알 수 없는 오류: {type(e).__name__}: {e}")
+        _fail(job, f"알 수 없는 오류: {type(e).__name__}: {e}", t0)
 
     return {"job_id": job_id, "status": job.status}

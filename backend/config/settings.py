@@ -179,7 +179,11 @@ LOW_CONFIDENCE_THRESHOLD = float(os.environ.get("LOW_CONFIDENCE_THRESHOLD", "0.5
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {"simple": {"format": "[{asctime}] {levelname} {name}: {message}", "style": "{"}},
+    # 시각 뒤에 +0900을 붙여 어느 시간대인지 로그만 보고 알 수 있게 한다(F7). DB 저장은 USE_TZ=True로 UTC 그대로
+    "formatters": {
+        "simple": {"format": "[{asctime}] {levelname} {name}: {message}", "style": "{", "datefmt": "%Y-%m-%d %H:%M:%S %z"},
+    },
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
-    "loggers": {"analyses": {"handlers": ["console"], "level": "INFO"}},
+    # propagate False: Celery Worker가 root 로거에도 출력해서 같은 줄이 두 번 찍히는 것을 막는다
+    "loggers": {"analyses": {"handlers": ["console"], "level": "INFO", "propagate": False}},
 }

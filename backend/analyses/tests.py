@@ -303,3 +303,49 @@ class PollingLimitTests(TestCase):
     def test_index_passes_poll_timeout_to_js(self):
         self.client.force_login(User.objects.create_user("poll", password="Str0ng-pass-123"))
         self.assertContains(self.client.get("/"), 'data-poll-timeout="120"')
+
+
+@override_settings(MEDIA_ROOT=TMP_MEDIA)
+class JobLoggingTests(TestCase):
+    """작업 1건을 로그로 추적: job id · 단계 · 걸린 시간, FastAPI에는 X-Job-ID 헤더."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        celery_app.conf.task_always_eager = True
+
+    @classmethod
+    def tearDownClass(cls):
+        celery_app.conf.task_always_eager = False
+        super().tearDownClass()
+
+    def setUp(self):
+        self.client.force_login(User.objects.create_user("logger", password="Str0ng-pass-123"))
+
+    @mock.patch("analyses.tasks.predict_video", return_value=FAKE_RESPONSE)
+    def test_success_logs_each_step_with_job_id(self, m):
+        with self.assertLogs("analyses.tasks", level="INFO") as logs, self.captureOnCommitCallbacks(execute=True):
+            job_id = self.client.post("/api/v1/analyses/", {"input_type": "UPLOAD", "video_file": mp4()}).json()["id"]
+        text = "\n".join(logs.output)
+        for step in ("시작", "영상 확보", "AI 추론 응답", "저장 완료 SUCCESS"):
+            self.assertIn(f"job#{job_id} {step}", text)
+        m.assert_called_once()
+        self.assertEqual(m.call_args.kwargs["job_id"], job_id)
+
+    @mock.patch("analyses.tasks.predict_video", side_effect=AIServiceError("AI 서버 오류(422): 영상을 열 수 없습니다"))
+    def test_failure_logs_total_time(self, m):
+        with self.assertLogs("analyses.tasks", level="INFO") as logs, self.captureOnCommitCallbacks(execute=True):
+            job_id = self.client.post("/api/v1/analyses/", {"input_type": "UPLOAD", "video_file": mp4()}).json()["id"]
+        self.assertTrue(any(f"job#{job_id} 실패 (총 " in line for line in logs.output))
+
+    def test_services_sends_job_id_header(self):
+        from .services import predict_video
+
+        path = f"{TMP_MEDIA}/h.mp4"
+        with open(path, "wb") as f:
+            f.write(b"0" * 10)
+        ok = mock.Mock(status_code=200)
+        ok.json.return_value = FAKE_RESPONSE
+        with mock.patch("analyses.services.requests.post", return_value=ok) as post:
+            predict_video(path, job_id=7)
+        self.assertEqual(post.call_args.kwargs["headers"], {"X-Job-ID": "7"})

@@ -69,7 +69,8 @@ async def predict_video(request: Request, file: UploadFile = File(...)):
     else:
         message = "영상에서 사람을 찾지 못했습니다."
 
-    logger.info("%s: %d frames, %d tracks, %d predictions, %d ms",
+    job_id = request.headers.get("x-job-id", "-")  # Celery가 보낸 작업 번호(없으면 단독 호출)
+    logger.info("job#%s %s: %d frames, %d tracks, %d predictions, %d ms", job_id,
                 file.filename, pose_result["video"]["frames"], len(pose_result["tracks"]), len(predictions), elapsed_ms)
     return {
         "person_found": person_found,

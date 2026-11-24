@@ -13,7 +13,9 @@ from routers import predictions
 from services.model_loader import ModelNotReady, load_action_model, load_project_config
 from services.pose_pipeline import PosePipeline
 
-logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(name)s: %(message)s")
+# 로그 시각은 컨테이너 TZ(compose.yaml TZ=Asia/Seoul)를 따르고, +0900을 붙여 시간대를 드러낸다(F7)
+logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(name)s: %(message)s",
+                    datefmt="%Y-%m-%d %H:%M:%S %z")
 logger = logging.getLogger("ai_service")
 
 
