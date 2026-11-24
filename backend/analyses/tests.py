@@ -217,3 +217,25 @@ class UrlStructureTests(TestCase):
         res = self.client.get("/")
         self.assertContains(res, 'data-list-url="/api/v1/analyses/"')
         self.assertContains(res, 'data-status-url="/api/v1/analyses/0/status/"')
+
+
+class HealthTests(TestCase):
+    """GET /api/v1/health/ : 로그인 없이 DB·Redis 상태. 실패하면 503."""
+
+    @mock.patch("config.health._check_redis")
+    def test_health_ok(self, redis_check):
+        res = self.client.get("/api/v1/health/")
+        self.assertEqual(res.status_code, 200)
+        body = res.json()
+        self.assertEqual(body["status"], "ok")
+        self.assertTrue(body["checks"]["db"]["ok"])
+        self.assertTrue(body["checks"]["redis"]["ok"])
+
+    @mock.patch("config.health._check_redis", side_effect=ConnectionError("down"))
+    def test_health_redis_down_is_503(self, redis_check):
+        res = self.client.get("/api/v1/health/")
+        self.assertEqual(res.status_code, 503)
+        self.assertFalse(res.json()["checks"]["redis"]["ok"])
+
+    def test_health_post_not_allowed(self):
+        self.assertEqual(self.client.post("/api/v1/health/").status_code, 405)

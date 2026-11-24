@@ -48,6 +48,12 @@ services:
       - media_data:/app/media                    # 업로드 영상: django가 저장, celery가 읽음
     ports:
       - "8000:8000"
+    healthcheck:                                 # /api/v1/health/ 가 DB·Redis까지 확인 (실패 시 503)
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
