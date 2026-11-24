@@ -51,12 +51,8 @@ class AnalysisJobViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
-        qs = AnalysisJob.objects.select_related("user").prefetch_related("predictions")
-        user = self.request.user
-        if user.is_staff:
-            return qs
-        # 일반 회원은 본인 작업만. 남의 작업 id로 접근하면 404가 된다.
-        return qs.filter(user=user)
+        # 일반 회원은 본인 작업만, 관리자는 전체 (남의 작업 id로 접근하면 404)
+        return AnalysisJob.objects.visible_to(self.request.user).select_related("user").prefetch_related("predictions")
 
     def get_serializer_class(self):
         if self.action == "create":

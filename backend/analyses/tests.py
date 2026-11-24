@@ -349,3 +349,24 @@ class JobLoggingTests(TestCase):
         with mock.patch("analyses.services.requests.post", return_value=ok) as post:
             predict_video(path, job_id=7)
         self.assertEqual(post.call_args.kwargs["headers"], {"X-Job-ID": "7"})
+
+
+class VisibleToTests(TestCase):
+    """API와 화면이 같은 조회 규칙(AnalysisJob.objects.visible_to)을 쓰는지."""
+
+    def setUp(self):
+        self.owner = User.objects.create_user("owner", password="Str0ng-pass-123")
+        self.other = User.objects.create_user("other", password="Str0ng-pass-123")
+        self.staff = User.objects.create_user("staff", password="Str0ng-pass-123", is_staff=True)
+        self.job = AnalysisJob.objects.create(user=self.owner, input_type="UPLOAD", status="SUCCESS")
+
+    def test_visible_to(self):
+        self.assertEqual(list(AnalysisJob.objects.visible_to(self.owner)), [self.job])
+        self.assertEqual(list(AnalysisJob.objects.visible_to(self.other)), [])
+        self.assertEqual(list(AnalysisJob.objects.visible_to(self.staff)), [self.job])
+
+    def test_detail_page_and_api_follow_same_rule(self):
+        for user, code in ((self.owner, 200), (self.other, 404), (self.staff, 200)):
+            self.client.force_login(user)
+            self.assertEqual(self.client.get(f"/analyses/{self.job.pk}/").status_code, code, user.username)
+            self.assertEqual(self.client.get(f"/api/v1/analyses/{self.job.pk}/").status_code, code, user.username)

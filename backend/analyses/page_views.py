@@ -29,8 +29,7 @@ def index(request):
 
 @login_required
 def detail(request, pk):
-    qs = AnalysisJob.objects.all() if request.user.is_staff else AnalysisJob.objects.filter(user=request.user)
-    job = get_object_or_404(qs.prefetch_related("predictions"), pk=pk)
+    job = get_object_or_404(AnalysisJob.objects.visible_to(request.user).prefetch_related("predictions"), pk=pk)
     return render(request, "analyses/detail.html", {"job": job, "low_conf": settings.LOW_CONFIDENCE_THRESHOLD})
 
 

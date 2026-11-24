@@ -24,6 +24,12 @@ class ActionLabel(models.TextChoices):
     WAVE = "wave", "A006 손 흔들기"
 
 
+class AnalysisJobQuerySet(models.QuerySet):
+    def visible_to(self, user):
+        """관리자는 전체, 일반 회원은 본인 작업만. API와 화면이 같은 규칙을 쓴다(남의 작업 id → 404)."""
+        return self if user.is_staff else self.filter(user=user)
+
+
 class AnalysisJob(models.Model):
     class InputType(models.TextChoices):
         UPLOAD = "UPLOAD", "영상 업로드"
@@ -68,6 +74,8 @@ class AnalysisJob(models.Model):
     created_at = models.DateTimeField("생성 시간", auto_now_add=True)
     started_at = models.DateTimeField("시작 시간", null=True, blank=True)
     finished_at = models.DateTimeField("완료 시간", null=True, blank=True)
+
+    objects = AnalysisJobQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at"]
