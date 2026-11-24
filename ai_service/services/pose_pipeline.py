@@ -19,12 +19,10 @@ from pathlib import Path
 
 import cv2
 
+from services.model_loader import MODEL_DIR  # 모델 폴더 위치는 model_loader 한 곳에서 정한다
 from src.multi_person_utils import feature_from_keypoints
 
 logger = logging.getLogger(__name__)
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_DIR = Path(os.environ.get("MODEL_DIR", BASE_DIR / "models"))
 
 
 class VideoReadError(ValueError):
