@@ -296,3 +296,10 @@ class StuckJobTests(TestCase):
     def test_stale_started_can_be_deleted(self):
         self.assertEqual(self.client.delete(f"/api/v1/analyses/{self._job('STARTED', 5).pk}/").status_code, 409)
         self.assertEqual(self.client.delete(f"/api/v1/analyses/{self._job('STARTED', 12).pk}/").status_code, 204)
+
+
+class PollingLimitTests(TestCase):
+    @override_settings(POLL_TIMEOUT_SECONDS=120)
+    def test_index_passes_poll_timeout_to_js(self):
+        self.client.force_login(User.objects.create_user("poll", password="Str0ng-pass-123"))
+        self.assertContains(self.client.get("/"), 'data-poll-timeout="120"')

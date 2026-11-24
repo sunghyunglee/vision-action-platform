@@ -22,6 +22,7 @@ def index(request):
         "allowed_ext": ",".join("." + e for e in settings.ALLOWED_VIDEO_EXTENSIONS),
         "max_upload_mb": settings.MAX_UPLOAD_MB,
         "low_conf": settings.LOW_CONFIDENCE_THRESHOLD,
+        "poll_timeout_seconds": settings.POLL_TIMEOUT_SECONDS,
     })
 
 

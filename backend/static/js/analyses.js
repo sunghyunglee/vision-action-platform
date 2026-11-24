@@ -5,6 +5,8 @@
   if (!form) return;
 
   const POLL_MS = 2000;
+  // 이 시간이 지나도 끝나지 않으면 조회를 멈춘다(Worker·Redis가 죽었을 때 화면이 영원히 '대기'가 되지 않게)
+  const POLL_TIMEOUT_MS = (Number(form.dataset.pollTimeout) || 600) * 1000;
   // "/api/v1/analyses/0/" 같은 템플릿 주소의 0을 실제 작업 id로 바꾼다
   const withId = (template, id) => template.replace("/0/", `/${id}/`);
   const urls = {
@@ -63,15 +65,34 @@
   });
 
   // 3) 상태 폴링
+  function stopPolling(id, text) {
+    clearInterval(timer);
+    startBtn.disabled = false;
+    showError(text);
+    detailLink.href = urls.detailPage(id);
+    detailLink.hidden = false;
+  }
+
   function poll(id) {
     clearInterval(timer);
+    const startedAt = Date.now();
+    const limitText = POLL_TIMEOUT_MS >= 60000 ? `${Math.round(POLL_TIMEOUT_MS / 60000)}분` : `${POLL_TIMEOUT_MS / 1000}초`;
     const tick = async () => {
+      if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+        stopPolling(id, `${limitText}이 지나도 분석이 끝나지 않아 상태 확인을 멈췄습니다. ` +
+          "Celery Worker와 Redis가 켜져 있는지 확인하세요. 나중에 상세 결과 화면에서 다시 볼 수 있습니다.");
+        return;
+      }
       try {
         const res = await fetch(urls.status(id), { credentials: "same-origin" });
         if (!res.ok) throw new Error(`상태 조회 실패 (${res.status})`);
         const s = await res.json();
         setStep(s.status);
         if (s.status === "STARTED") msg.textContent = "처리 중입니다… (영상 확보 → AI 추론)";
+        if (s.is_stale) {
+          stopPolling(id, "작업이 멈춘 것 같습니다(Worker가 가져가지 않음). 이 작업은 이력에서 삭제하고 다시 시도하세요.");
+          return;
+        }
         if (s.is_finished) {
           clearInterval(timer);
           startBtn.disabled = false;

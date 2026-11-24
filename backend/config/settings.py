@@ -160,6 +160,9 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {  # 결과 저장소(Redis) 재연결
 # 이 시간(분)이 지나도 PENDING이면 Worker가 못 가져간 '멈춘 작업'으로 보고 삭제를 허용한다
 PENDING_STALE_MINUTES = int(os.environ.get("PENDING_STALE_MINUTES", "10"))
 
+# 분석 화면(analyses.js)이 상태를 조회하는 최대 시간(초). 넘으면 조회를 멈추고 안내 문구를 보여 준다
+POLL_TIMEOUT_SECONDS = int(os.environ.get("POLL_TIMEOUT_SECONDS", "600"))
+
 # ── FastAPI AI 서버 (컨테이너끼리는 서비스 이름 fastapi 로 접근) ──
 AI_SERVICE_URL = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
 AI_SERVICE_TIMEOUT = int(os.environ.get("AI_SERVICE_TIMEOUT", "300"))

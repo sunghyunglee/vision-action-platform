@@ -17,7 +17,8 @@
         data-list-url="{% url 'api:analysis-list' %}"
         data-detail-api-url="{% url 'api:analysis-detail' 0 %}"
         data-status-url="{% url 'api:analysis-status' 0 %}"
-        data-detail-page-url="{% url 'analyses:detail' 0 %}">
+        data-detail-page-url="{% url 'analyses:detail' 0 %}"
+        data-poll-timeout="{{ poll_timeout_seconds }}">
     {% csrf_token %}
     <input type="hidden" name="input_type" value="UPLOAD">
 
