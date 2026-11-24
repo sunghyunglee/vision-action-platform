@@ -196,6 +196,10 @@
     cells.forEach((v, i) => {
       const td = document.createElement("td");
       if (i === 0) { const a = document.createElement("a"); a.href = urls.detailPage(job.id); a.textContent = v; td.appendChild(a); }
+      else if (i === 3) {
+        // 상태 칸은 서버 이력(_status_badge.html)과 같은 배지로 그린다
+        const badge = document.createElement("span"); badge.className = `badge s-${job.status}`; badge.textContent = v; td.appendChild(badge);
+      }
       else td.textContent = v;
       tr.appendChild(td);
     });
