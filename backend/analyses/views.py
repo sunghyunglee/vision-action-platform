@@ -11,6 +11,7 @@ import logging
 import uuid
 
 from django.db import transaction
+from django.db.models import Count
 from django.utils import timezone
 from django.urls import reverse
 from rest_framework import status, viewsets
@@ -52,7 +53,11 @@ class AnalysisJobViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # 일반 회원은 본인 작업만, 관리자는 전체 (남의 작업 id로 접근하면 404)
-        return AnalysisJob.objects.visible_to(self.request.user).select_related("user").prefetch_related("predictions")
+        qs = AnalysisJob.objects.visible_to(self.request.user)
+        if self.action == "status":
+            # 화면이 2초마다 부르는 폴링: 예측 행(확률 JSON 포함)은 읽지 않고 개수만 COUNT로 함께 가져온다
+            return qs.annotate(prediction_count=Count("predictions"))
+        return qs.select_related("user").prefetch_related("predictions")
 
     def get_serializer_class(self):
         if self.action == "create":

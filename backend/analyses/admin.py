@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from .models import AnalysisJob, PersonPrediction
 
@@ -22,9 +23,13 @@ class AnalysisJobAdmin(admin.ModelAdmin):
     date_hierarchy = "created_at"
     inlines = [PersonPredictionInline]
 
+    def get_queryset(self, request):
+        # 목록의 '예측 수'를 행마다 COUNT 하지 않고(N+1) 한 번의 쿼리로 함께 집계
+        return super().get_queryset(request).annotate(_prediction_count=Count("predictions"))
+
     @admin.display(description="예측 수")
     def prediction_count(self, obj):
-        return obj.predictions.count()
+        return obj._prediction_count
 
 
 @admin.register(PersonPrediction)

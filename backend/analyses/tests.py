@@ -370,3 +370,35 @@ class VisibleToTests(TestCase):
             self.client.force_login(user)
             self.assertEqual(self.client.get(f"/analyses/{self.job.pk}/").status_code, code, user.username)
             self.assertEqual(self.client.get(f"/api/v1/analyses/{self.job.pk}/").status_code, code, user.username)
+
+
+class QueryCountTests(TestCase):
+    """폴링·Admin 목록이 작업·예측 수에 따라 쿼리가 늘어나지 않는지(N+1 방지)."""
+
+    def setUp(self):
+        self.staff = User.objects.create_superuser("root", password="Str0ng-pass-123")
+        for i in range(5):
+            job = AnalysisJob.objects.create(user=self.staff, input_type="UPLOAD", status="SUCCESS")
+            for t in range(3):
+                PersonPrediction.objects.create(job=job, track_id=t, action_label="wave", confidence=0.9)
+        self.job = job
+        self.client.force_login(self.staff)
+
+    def test_status_poll_counts_without_loading_predictions(self):
+        # 세션 · 사용자 · 작업+COUNT 1개 = 3쿼리 (예측 행을 따로 읽지 않음)
+        with self.assertNumQueries(3):
+            res = self.client.get(f"/api/v1/analyses/{self.job.pk}/status/")
+        self.assertEqual(res.json()["prediction_count"], 3)
+
+    def test_admin_changelist_does_not_grow_with_rows(self):
+        url = "/admin/analyses/analysisjob/"
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as five:
+            self.assertContains(self.client.get(url), "root")
+        for i in range(5):
+            AnalysisJob.objects.create(user=self.staff, input_type="UPLOAD", status="SUCCESS")
+        with CaptureQueriesContext(connection) as ten:
+            self.client.get(url)
+        self.assertEqual(len(five.captured_queries), len(ten.captured_queries))

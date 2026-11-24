@@ -106,4 +106,6 @@ class AnalysisJobStatusSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_prediction_count(self, obj):
-        return obj.predictions.count()
+        # views.status는 annotate(Count)로 개수를 미리 붙여 온다. 없으면 직접 센다
+        count = getattr(obj, "prediction_count", None)
+        return obj.predictions.count() if count is None else count
