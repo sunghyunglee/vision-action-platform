@@ -14,6 +14,10 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+# 분석 수집(capture_clip)과 실시간 미리보기(stream_views)가 같은 안내 문구를 쓴다
+CAMERA_CONNECT_FAILED = "카메라에 연결하지 못했습니다. 휴대폰 IP Webcam 앱이 켜져 있고 같은 네트워크인지 확인하세요."
+
+
 class CameraError(Exception):
     pass
 
@@ -36,7 +40,7 @@ def capture_clip(index, seconds, out_path, max_fps=30):
     cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, settings.CAMERA_CONNECT_TIMEOUT * 1000)
     if not cap.isOpened():
         cap.release()
-        raise CameraError("카메라에 연결하지 못했습니다. 휴대폰 IP Webcam 앱이 켜져 있고 같은 네트워크인지 확인하세요.")
+        raise CameraError(CAMERA_CONNECT_FAILED)
 
     writer = None
     frames = 0

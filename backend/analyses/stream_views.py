@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, StreamingHttpResponse
 from django.views.decorators.http import require_GET
 
-from .camera_capture import CameraError, get_allowed_camera_url
+from .camera_capture import CAMERA_CONNECT_FAILED, CameraError, get_allowed_camera_url
 
 logger = logging.getLogger("analyses")
 
@@ -66,7 +66,7 @@ def camera_stream(request, index):
         upstream.raise_for_status()
     except requests.RequestException as exc:
         logger.warning("카메라 %s 미리보기 연결 실패: %s", index, type(exc).__name__)
-        return _error("카메라에 연결하지 못했습니다. 휴대폰 IP Webcam 앱이 켜져 있고 같은 네트워크인지 확인하세요.")
+        return _error(CAMERA_CONNECT_FAILED)
 
     content_type = upstream.headers.get("Content-Type", "")
     if not content_type.lower().startswith("multipart/x-mixed-replace"):
