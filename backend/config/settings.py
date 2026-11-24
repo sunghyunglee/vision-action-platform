@@ -172,6 +172,8 @@ AI_SERVICE_TIMEOUT = int(os.environ.get("AI_SERVICE_TIMEOUT", "300"))
 IP_WEBCAM_ALLOWED_URLS = env_list("IP_WEBCAM_ALLOWED_URLS", "")
 CAMERA_CAPTURE_SECONDS = int(os.environ.get("CAMERA_CAPTURE_SECONDS", "8"))
 CAMERA_CONNECT_TIMEOUT = int(os.environ.get("CAMERA_CONNECT_TIMEOUT", "10"))
+# 웹캠 탭 실시간 미리보기(/cameras/<index>/stream/) 한 번의 최대 시간. gunicorn 워커를 오래 붙잡지 않게
+CAMERA_PREVIEW_MAX_SECONDS = int(os.environ.get("CAMERA_PREVIEW_MAX_SECONDS", "60"))
 
 # 이 값보다 낮은 confidence는 화면에 '판단 불확실'로 표시
 LOW_CONFIDENCE_THRESHOLD = float(os.environ.get("LOW_CONFIDENCE_THRESHOLD", "0.55"))

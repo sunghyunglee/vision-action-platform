@@ -36,6 +36,16 @@
           </select>
         </label>
         <p class="muted">시작을 누르면 서버가 카메라에서 <b>{{ capture_seconds }}초</b> 동안 영상을 모읍니다. 그동안 카메라 앞에서 동작을 하세요.</p>
+        {# 실시간 미리보기: 서버가 중계하는 주소만 쓴다(카메라 IP는 HTML에 나오지 않음). 0은 JS가 카메라 번호로 바꾸는 자리 #}
+        <div class="preview" id="camera-preview"
+             data-stream-url="{% url 'analyses:camera_stream' 0 %}"
+             data-max-seconds="{{ preview_seconds }}">
+          <img id="preview-img" alt="카메라 미리보기" hidden>
+          <div class="preview-bar">
+            <span id="preview-msg" class="muted">미리보기 꺼짐</span>
+            <button type="button" id="preview-btn" class="btn">미리보기 켜기</button>
+          </div>
+        </div>
       {% else %}
         <p class="error">서버에 허용된 IP Webcam이 없습니다. .env의 IP_WEBCAM_ALLOWED_URLS를 설정하세요.</p>
       {% endif %}

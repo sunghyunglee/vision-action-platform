@@ -25,12 +25,61 @@
   const detailLink = document.getElementById("detail-link");
   let timer = null;
 
+  // 1-1) IP Webcam 실시간 미리보기: 웹캠 탭에 있을 때만 켜고, 탭을 떠나거나 최대 시간이 지나면 끊는다.
+  // 영상은 Django가 중계하는 /cameras/<번호>/stream/ 에서 받는다(카메라 IP는 브라우저에 오지 않음).
+  const preview = (() => {
+    const box = document.getElementById("camera-preview");
+    if (!box) return { show() {}, hide() {}, ensure() {} };  // 허용 카메라가 없으면 미리보기도 없음
+    const img = document.getElementById("preview-img");
+    const pmsg = document.getElementById("preview-msg");
+    const btn = document.getElementById("preview-btn");
+    const camera = form.querySelector("[name=camera_index]");
+    const maxSeconds = Number(box.dataset.maxSeconds) || 60;
+    let endTimer = null;
+    let on = false;
+
+    function setText(text, cls = "muted") { pmsg.className = cls; pmsg.textContent = text; }
+
+    function start() {
+      stop("");
+      on = true;
+      img.hidden = false;
+      img.src = `${withId(box.dataset.streamUrl, camera.value)}?t=${Date.now()}`;  // 매번 새 연결
+      setText(`미리보기 중 (최대 ${maxSeconds}초)`);
+      btn.textContent = "미리보기 끄기";
+      endTimer = setTimeout(() => stop(`미리보기 ${maxSeconds}초가 끝났습니다. 다시 보려면 켜기를 누르세요.`), maxSeconds * 1000);
+    }
+
+    function stop(text = "미리보기 꺼짐") {
+      clearTimeout(endTimer);
+      // src를 지우면 브라우저가 연결을 끊고, 서버도 카메라 연결을 닫는다
+      if (on) img.removeAttribute("src");
+      on = false;
+      img.hidden = true;
+      if (text) setText(text);
+      btn.textContent = "미리보기 켜기";
+    }
+
+    img.addEventListener("error", () => {
+      if (!on) return;
+      stop("");
+      setText("카메라 미리보기를 열지 못했습니다. 휴대폰 IP Webcam 앱이 켜져 있는지 확인하세요.", "error");
+    });
+    btn.addEventListener("click", () => (on ? stop() : start()));
+    camera.addEventListener("change", () => { if (on) start(); });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+    window.addEventListener("pagehide", () => stop());
+    return { show: start, hide: () => stop(), ensure: () => { if (!on) start(); } };
+  })();
+
   // 1) 탭 전환
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === tab));
       inputType.value = tab.dataset.input;
       document.querySelectorAll(".pane").forEach((p) => p.classList.toggle("hidden", p.dataset.pane !== tab.dataset.input));
+      if (tab.dataset.input === "WEBCAM") preview.show();
+      else preview.hide();
     });
   });
 
@@ -43,6 +92,7 @@
       if (!form.video_file.files.length) return showError("분석할 영상 파일을 선택하세요.");
     } else {
       data.delete("video_file");
+      preview.ensure();  // 수집하는 동안 화면에서도 카메라를 볼 수 있게(분석 수집은 서버가 따로 연결)
     }
 
     startBtn.disabled = true;

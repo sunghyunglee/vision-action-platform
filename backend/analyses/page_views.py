@@ -19,6 +19,7 @@ def index(request):
         "cameras": cameras,
         "actions": ActionLabel.choices,
         "capture_seconds": settings.CAMERA_CAPTURE_SECONDS,
+        "preview_seconds": settings.CAMERA_PREVIEW_MAX_SECONDS,
         "allowed_ext": ",".join("." + e for e in settings.ALLOWED_VIDEO_EXTENSIONS),
         "max_upload_mb": settings.MAX_UPLOAD_MB,
         "low_conf": settings.LOW_CONFIDENCE_THRESHOLD,
