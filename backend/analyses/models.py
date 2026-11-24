@@ -6,8 +6,11 @@ auth_user(Django 기본) 1 ── N AnalysisJob 1 ── N PersonPrediction
 - AnalysisJob     : 분석 요청 1건(누가, 어떤 입력으로, 지금 어떤 상태인지)
 - PersonPrediction: 그 작업 영상 속 사람(track_id) 1명당 예측 1행
 """
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class ActionLabel(models.TextChoices):
@@ -77,6 +80,21 @@ class AnalysisJob(models.Model):
     @property
     def is_finished(self):
         return self.status in (self.Status.SUCCESS, self.Status.FAILURE)
+
+    @property
+    def is_stale(self):
+        """Worker가 가져가지 못했거나 처리 도중 사라져 상태가 멈춘 작업인지.
+
+        - PENDING인데 PENDING_STALE_MINUTES(기본 10분) 넘게 지남 → Redis·Worker 문제로 영원히 대기
+        - STARTED인데 Celery 제한 시간 + 60초가 지남 → Worker가 죽었거나 강제 종료됨
+        """
+        now = timezone.now()
+        if self.status == self.Status.PENDING:
+            return now - self.created_at > timedelta(minutes=settings.PENDING_STALE_MINUTES)
+        if self.status == self.Status.STARTED:
+            since = self.started_at or self.created_at
+            return now - since > timedelta(seconds=settings.CELERY_TASK_TIME_LIMIT + 60)
+        return False
 
     @property
     def total_seconds(self):

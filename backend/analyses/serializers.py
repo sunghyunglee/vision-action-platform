@@ -94,12 +94,13 @@ class AnalysisJobUpdateSerializer(serializers.ModelSerializer):
 class AnalysisJobStatusSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     is_finished = serializers.BooleanField(read_only=True)
+    is_stale = serializers.BooleanField(read_only=True)
     prediction_count = serializers.SerializerMethodField()
 
     class Meta:
         model = AnalysisJob
         fields = (
-            "id", "status", "status_display", "is_finished", "error_message", "result_message",
+            "id", "status", "status_display", "is_finished", "is_stale", "error_message", "result_message",
             "celery_task_id", "prediction_count", "started_at", "finished_at",
         )
         read_only_fields = fields

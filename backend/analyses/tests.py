@@ -5,11 +5,13 @@ FastAPI·Redis 없이 돌도록 Celery는 eager 모드, AI 호출은 mock으로 
 """
 import shutil
 import tempfile
+from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
+from django.utils import timezone
 
 from config.celery import app as celery_app
 
@@ -239,3 +241,58 @@ class HealthTests(TestCase):
 
     def test_health_post_not_allowed(self):
         self.assertEqual(self.client.post("/api/v1/health/").status_code, 405)
+
+
+@override_settings(MEDIA_ROOT=TMP_MEDIA, PENDING_STALE_MINUTES=10)
+class StuckJobTests(TestCase):
+    """Redis·Worker가 없을 때 작업이 영원히 PENDING에 남지 않게 한다."""
+
+    def setUp(self):
+        self.user = User.objects.create_user("stuck", password="Str0ng-pass-123")
+        self.client.force_login(self.user)
+
+    @mock.patch("analyses.views.run_analysis.apply_async", side_effect=ConnectionRefusedError("redis down"))
+    def test_enqueue_failure_saved_as_failure(self, apply_async):
+        with self.captureOnCommitCallbacks(execute=True):
+            res = self.client.post("/api/v1/analyses/", {"input_type": "UPLOAD", "video_file": mp4()})
+        job = AnalysisJob.objects.get()
+        self.assertEqual(job.status, "FAILURE")
+        self.assertIn("대기열", job.error_message)
+        self.assertIsNotNone(job.finished_at)
+        self.assertIn(res.status_code, (202, 503))  # 테스트는 트랜잭션 안이라 202, 실제 요청은 503
+
+    @mock.patch("analyses.views.run_analysis.apply_async", side_effect=ConnectionRefusedError("redis down"))
+    def test_enqueue_failure_returns_503_outside_transaction(self, apply_async):
+        from rest_framework.test import APIRequestFactory, force_authenticate
+
+        from .views import AnalysisJobViewSet
+
+        req = APIRequestFactory().post("/api/v1/analyses/", {"input_type": "UPLOAD", "video_file": mp4()},
+                                       format="multipart")
+        force_authenticate(req, user=self.user)
+        with mock.patch("analyses.views.transaction.on_commit", side_effect=lambda fn: fn()):
+            res = AnalysisJobViewSet.as_view({"post": "create"})(req)
+        self.assertEqual(res.status_code, 503)
+        self.assertEqual(res.data["status"], "FAILURE")
+
+    def _job(self, status, minutes_ago):
+        job = AnalysisJob.objects.create(user=self.user, input_type="UPLOAD", status=status)
+        past = timezone.now() - timedelta(minutes=minutes_ago)
+        AnalysisJob.objects.filter(pk=job.pk).update(created_at=past, started_at=past)
+        return AnalysisJob.objects.get(pk=job.pk)
+
+    def test_fresh_pending_cannot_be_deleted(self):
+        job = self._job("PENDING", 1)
+        self.assertFalse(job.is_stale)
+        self.assertEqual(self.client.delete(f"/api/v1/analyses/{job.pk}/").status_code, 409)
+
+    def test_stale_pending_can_be_deleted(self):
+        job = self._job("PENDING", 11)
+        self.assertTrue(self.client.get(f"/api/v1/analyses/{job.pk}/status/").json()["is_stale"])
+        self.assertEqual(self.client.delete(f"/api/v1/analyses/{job.pk}/").status_code, 204)
+        self.assertFalse(AnalysisJob.objects.filter(pk=job.pk).exists())
+
+    @override_settings(CELERY_TASK_TIME_LIMIT=600)
+    def test_stale_started_can_be_deleted(self):
+        self.assertEqual(self.client.delete(f"/api/v1/analyses/{self._job('STARTED', 5).pk}/").status_code, 409)
+        self.assertEqual(self.client.delete(f"/api/v1/analyses/{self._job('STARTED', 12).pk}/").status_code, 204)

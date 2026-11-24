@@ -149,6 +149,16 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = int(os.environ.get("CELERY_TASK_TIME_LIMIT", "600"))
 CELERY_TASK_SOFT_TIME_LIMIT = CELERY_TASK_TIME_LIMIT - 30
 CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", False)  # Redis 없이 테스트할 때만 True
+# Redis가 꺼져 있을 때 작업 등록이 오래 매달리지 않게: 연결 3초, 재시도 2번
+CELERY_BROKER_CONNECTION_TIMEOUT = 3
+CELERY_TASK_PUBLISH_RETRY_POLICY = {"max_retries": 2, "interval_start": 0, "interval_step": 0.5, "interval_max": 1}
+CELERY_REDIS_SOCKET_CONNECT_TIMEOUT = 3
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {  # 결과 저장소(Redis) 재연결도 기본 20번 → 2번
+    "retry_policy": {"max_retries": 2, "interval_start": 0, "interval_step": 0.5, "interval_max": 1},
+}
+
+# 이 시간(분)이 지나도 PENDING이면 Worker가 못 가져간 '멈춘 작업'으로 보고 삭제를 허용한다
+PENDING_STALE_MINUTES = int(os.environ.get("PENDING_STALE_MINUTES", "10"))
 
 # ── FastAPI AI 서버 (컨테이너끼리는 서비스 이름 fastapi 로 접근) ──
 AI_SERVICE_URL = os.environ.get("AI_SERVICE_URL", "http://localhost:8001")
