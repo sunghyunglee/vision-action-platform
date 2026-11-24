@@ -6,8 +6,12 @@ from unittest import mock
 
 import requests
 from django.contrib.auth.models import User
-from django.test import TestCase, override_settings
+from django.core.signals import request_finished
+from django.db import close_old_connections
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+
+from .stream_views import camera_stream
 
 
 class FakeMjpeg:
@@ -93,12 +97,23 @@ class CameraPreviewTests(TestCase):
     def test_browser_disconnect_closes_camera(self, get):
         fake = FakeMjpeg(endless=True)
         get.return_value = fake
-        self.login()
-        res = self.client.get("/cameras/0/stream/")
-        it = iter(res.streaming_content)
-        next(it)
-        res.close()  # WSGI 서버가 브라우저 연결 끊김 때 하는 일
+        # 테스트 클라이언트 대신 뷰를 직접 부른다. 테스트 클라이언트는 스트리밍 응답을 감싸서,
+        # close() 도중에 close_old_connections 신호를 다시 붙여 버린다.
+        request = RequestFactory().get("/cameras/0/stream/")
+        request.user = self.user
+        res = camera_stream(request, 0)
+        next(iter(res))
+        # 브라우저가 끊기면 WSGI 서버가 response.close()를 부른다. close()는 request_finished 신호로
+        # close_old_connections도 부르는데, 테스트 트랜잭션 안에서는 PostgreSQL 연결이 실제로 닫혀
+        # 뒤 테스트가 모두 깨진다(SQLite 메모리 DB는 닫히지 않아서 통과했던 것). 그 동안만 신호를 떼어 둔다.
+        request_finished.disconnect(close_old_connections)
+        try:
+            with self.assertLogs("analyses", level="INFO") as logs:
+                res.close()
+        finally:
+            request_finished.connect(close_old_connections)
         self.assertTrue(fake.closed)
+        self.assertIn("브라우저 종료", "\n".join(logs.output))
 
     @mock.patch("analyses.stream_views.requests.get")
     def test_camera_down_502_without_address(self, get):
