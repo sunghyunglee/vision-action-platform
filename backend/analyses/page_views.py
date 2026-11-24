@@ -1,6 +1,4 @@
 """HTML 화면. 데이터 변경은 DRF API(views.py)가 맡고, 여기서는 화면만 그린다."""
-import json
-
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -32,16 +30,17 @@ def detail(request, pk):
     return render(request, "analyses/detail.html", {"job": job, "low_conf": settings.LOW_CONFIDENCE_THRESHOLD})
 
 
+def _count_by(qs, field):
+    """field 값별 행 수를 DB의 GROUP BY로 센다 → {값: 개수}. 예: {"SUCCESS": 12, "FAILURE": 3}"""
+    return dict(qs.values_list(field).annotate(n=Count("id")).values_list(field, "n"))
+
+
 @staff_member_required
 def dashboard(request):
     """관리자 전용. Django ORM 집계 결과를 Chart.js에 넘긴다(FastAPI는 DB를 모른다)."""
-    action_counts = dict(
-        PersonPrediction.objects.values_list("action_label").annotate(n=Count("id")).values_list("action_label", "n")
-    )
-    status_counts = dict(AnalysisJob.objects.values_list("status").annotate(n=Count("id")).values_list("status", "n"))
-    input_counts = dict(
-        AnalysisJob.objects.values_list("input_type").annotate(n=Count("id")).values_list("input_type", "n")
-    )
+    action_counts = _count_by(PersonPrediction.objects, "action_label")
+    status_counts = _count_by(AnalysisJob.objects, "status")
+    input_counts = _count_by(AnalysisJob.objects, "input_type")
     avg_ms = (
         AnalysisJob.objects.filter(status=AnalysisJob.Status.SUCCESS)
         .values("input_type").annotate(avg=Avg("processing_ms"))
