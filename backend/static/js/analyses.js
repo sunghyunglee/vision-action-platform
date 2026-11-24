@@ -15,7 +15,6 @@
     status: (id) => withId(form.dataset.statusUrl, id),
     detailPage: (id) => withId(form.dataset.detailPageUrl, id),
   };
-  const lowConf = JSON.parse(document.getElementById("low-conf").textContent);
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const inputType = form.querySelector("[name=input_type]");
   const startBtn = document.getElementById("start-btn");
@@ -171,7 +170,7 @@
     }
     job.predictions.forEach((p) => {
       const tr = document.createElement("tr");
-      const uncertain = p.confidence < lowConf;
+      const uncertain = p.is_uncertain;  // 기준(LOW_CONFIDENCE_THRESHOLD)은 서버 PersonPrediction.is_uncertain 한 곳
       [p.track_id, `${p.action_label} (${p.action_display})`, p.confidence.toFixed(3), p.window_count].forEach((v) => {
         const td = document.createElement("td"); td.textContent = v; tr.appendChild(td);
       });
