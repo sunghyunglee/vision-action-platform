@@ -112,6 +112,8 @@ STORAGES = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", BASE_DIR / "media"))
+# DEBUG=False에서도 Django가 /media/를 직접 제공할지(시연용). 운영은 False + 웹 서버가 제공
+SERVE_MEDIA = env_bool("SERVE_MEDIA", False)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

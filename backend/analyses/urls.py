@@ -1,16 +1,12 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+"""analyses 앱의 화면(HTML) 주소. API 주소는 api_urls.py에 따로 둔다."""
+from django.urls import path
 
-from . import page_views, views
+from . import page_views
 
 app_name = "analyses"
-
-router = DefaultRouter()
-router.register("analyses", views.AnalysisJobViewSet, basename="analysis")
 
 urlpatterns = [
     path("", page_views.index, name="index"),
     path("analyses/<int:pk>/", page_views.detail, name="detail"),
     path("dashboard/", page_views.dashboard, name="dashboard"),
-    path("api/", include(router.urls)),
 ]

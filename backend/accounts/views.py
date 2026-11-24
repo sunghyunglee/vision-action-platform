@@ -26,5 +26,5 @@ def signup(request):
 
 @api_view(["GET"])
 def me(request):
-    """GET /accounts/api/me/ : 로그인한 본인 정보."""
+    """GET /api/v1/auth/me/ : 로그인한 본인 정보."""
     return Response(MeSerializer(request.user).data)

@@ -25,11 +25,11 @@ class AccountsTests(TestCase):
         self.assertIn(reverse("login"), res["Location"])
 
     def test_anonymous_api_denied(self):
-        res = self.client.get("/api/analyses/")
+        res = self.client.get("/api/v1/analyses/")
         self.assertIn(res.status_code, (401, 403))
 
     def test_me_api(self):
         User.objects.create_user("carol", password="Str0ng-pass-123")
         self.client.login(username="carol", password="Str0ng-pass-123")
-        res = self.client.get(reverse("me"))
+        res = self.client.get(reverse("api:me"))
         self.assertEqual(res.json()["username"], "carol")

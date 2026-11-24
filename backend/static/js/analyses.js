@@ -1,9 +1,18 @@
-// 분석 화면: 입력 방식 전환 → POST /api/analyses/ → 작업 ID로 상태 폴링 → 완료 시 결과 표시
+// 분석 화면: 입력 방식 전환 → POST /api/v1/analyses/ → 작업 ID로 상태 폴링 → 완료 시 결과 표시
+// 주소는 하드코딩하지 않고 index.html의 data-*-url(Django {% url %})에서 읽는다.
 (() => {
   const form = document.getElementById("analysis-form");
   if (!form) return;
 
   const POLL_MS = 2000;
+  // "/api/v1/analyses/0/" 같은 템플릿 주소의 0을 실제 작업 id로 바꾼다
+  const withId = (template, id) => template.replace("/0/", `/${id}/`);
+  const urls = {
+    list: form.dataset.listUrl,
+    detailApi: (id) => withId(form.dataset.detailApiUrl, id),
+    status: (id) => withId(form.dataset.statusUrl, id),
+    detailPage: (id) => withId(form.dataset.detailPageUrl, id),
+  };
   const lowConf = JSON.parse(document.getElementById("low-conf").textContent);
   const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
   const inputType = form.querySelector("[name=input_type]");
@@ -37,7 +46,7 @@
     startBtn.disabled = true;
     resetPanel();
     try {
-      const res = await fetch("/api/analyses/", {
+      const res = await fetch(urls.list, {
         method: "POST", body: data, headers: { "X-CSRFToken": csrf }, credentials: "same-origin",
       });
       const body = await res.json().catch(() => ({}));
@@ -58,7 +67,7 @@
     clearInterval(timer);
     const tick = async () => {
       try {
-        const res = await fetch(`/api/analyses/${id}/status/`, { credentials: "same-origin" });
+        const res = await fetch(urls.status(id), { credentials: "same-origin" });
         if (!res.ok) throw new Error(`상태 조회 실패 (${res.status})`);
         const s = await res.json();
         setStep(s.status);
@@ -68,7 +77,7 @@
           startBtn.disabled = false;
           if (s.status === "SUCCESS") await showResult(id);
           else showError(s.error_message || "분석에 실패했습니다.");
-          detailLink.href = `/analyses/${id}/`;
+          detailLink.href = urls.detailPage(id);
           detailLink.hidden = false;
         }
       } catch (err) {
@@ -83,7 +92,7 @@
 
   // 4) 결과 표시
   async function showResult(id) {
-    const res = await fetch(`/api/analyses/${id}/`, { credentials: "same-origin" });
+    const res = await fetch(urls.detailApi(id), { credentials: "same-origin" });
     const job = await res.json();
     const tbody = table.querySelector("tbody");
     tbody.innerHTML = "";
@@ -117,7 +126,7 @@
     const cells = [job.id, job.title || "-", job.input_type_display, job.status_display, preds, "방금"];
     cells.forEach((v, i) => {
       const td = document.createElement("td");
-      if (i === 0) { const a = document.createElement("a"); a.href = `/analyses/${job.id}/`; a.textContent = v; td.appendChild(a); }
+      if (i === 0) { const a = document.createElement("a"); a.href = urls.detailPage(job.id); a.textContent = v; td.appendChild(a); }
       else td.textContent = v;
       tr.appendChild(td);
     });

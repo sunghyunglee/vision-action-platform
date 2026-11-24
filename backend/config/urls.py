@@ -5,11 +5,14 @@ from django.views.static import serve
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("accounts.urls")),
-    path("", include("analyses.urls")),
+    path("accounts/", include("accounts.urls")),                # 화면: 회원
+    path("api/v1/", include("config.api_urls", namespace="api")),  # API는 여기 한 곳 (버전 v1)
+    path("", include("analyses.urls")),                         # 화면: 분석
 ]
 
-# 업로드·수집 영상(/media/) 제공. 수업 시연용 단일 서버라 Django가 직접 제공한다.
-urlpatterns += [
-    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
-]
+# 업로드·수집 영상(/media/). 개발·시연(DEBUG)에서만 Django가 직접 제공하고,
+# 운영에서는 nginx 같은 웹 서버가 맡는다. 시연에서 DEBUG=False로 돌릴 때만 SERVE_MEDIA=True.
+if settings.DEBUG or settings.SERVE_MEDIA:
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]

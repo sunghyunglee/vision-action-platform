@@ -12,7 +12,12 @@
     <button type="button" class="tab" data-input="WEBCAM">IP Webcam</button>
   </div>
 
-  <form id="analysis-form" enctype="multipart/form-data">
+  {# 주소는 JS에 직접 쓰지 않고 Django {% url %}로 만들어 넘긴다. 0은 JS가 작업 id로 바꾸는 자리 #}
+  <form id="analysis-form" enctype="multipart/form-data"
+        data-list-url="{% url 'api:analysis-list' %}"
+        data-detail-api-url="{% url 'api:analysis-detail' 0 %}"
+        data-status-url="{% url 'api:analysis-status' 0 %}"
+        data-detail-page-url="{% url 'analyses:detail' 0 %}">
     {% csrf_token %}
     <input type="hidden" name="input_type" value="UPLOAD">
 

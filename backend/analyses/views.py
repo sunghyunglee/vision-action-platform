@@ -1,15 +1,16 @@
 """DRF API
 
-POST   /api/analyses/               분석 등록 → 202 + 작업 ID·task ID
-GET    /api/analyses/               내 분석 목록(관리자는 전체)
-GET    /api/analyses/{id}/          상세 + 사람별 결과
-PATCH  /api/analyses/{id}/          제목·메모만 수정
-DELETE /api/analyses/{id}/          삭제(처리 중이면 409), 사람별 예측·영상 파일도 함께 삭제
-GET    /api/analyses/{id}/status/   상태만 가볍게 조회(브라우저 폴링용)
+POST   /api/v1/analyses/               분석 등록 → 202 + 작업 ID·task ID
+GET    /api/v1/analyses/               내 분석 목록(관리자는 전체)
+GET    /api/v1/analyses/{id}/          상세 + 사람별 결과
+PATCH  /api/v1/analyses/{id}/          제목·메모만 수정
+DELETE /api/v1/analyses/{id}/          삭제(처리 중이면 409), 사람별 예측·영상 파일도 함께 삭제
+GET    /api/v1/analyses/{id}/status/   상태만 가볍게 조회(브라우저 폴링용)
 """
 import uuid
 
 from django.db import transaction
+from django.urls import reverse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -57,7 +58,12 @@ class AnalysisJobViewSet(viewsets.ModelViewSet):
         transaction.on_commit(lambda: run_analysis.apply_async(args=[job.pk], task_id=task_id))
 
         return Response(
-            {"id": job.pk, "task_id": task_id, "status": job.status, "status_url": f"/api/analyses/{job.pk}/status/"},
+            {
+                "id": job.pk,
+                "task_id": task_id,
+                "status": job.status,
+                "status_url": reverse("api:analysis-status", args=[job.pk]),
+            },
             status=status.HTTP_202_ACCEPTED,
         )
 
