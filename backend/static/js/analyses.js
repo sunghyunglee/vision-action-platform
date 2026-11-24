@@ -115,12 +115,15 @@
   });
 
   // 3) 상태 폴링
-  function stopPolling(id, text) {
+  // 폴링을 끝내는 곳(완료·실패·멈춤·시간 초과·조회 오류)은 모두 여기로: 타이머 정지 → 버튼 복구 → (오류 문구) → 상세 링크
+  function stopPolling(id, errorText) {
     clearInterval(timer);
     startBtn.disabled = false;
-    showError(text);
-    detailLink.href = urls.detailPage(id);
-    detailLink.hidden = false;
+    if (errorText) showError(errorText);
+    if (id) {
+      detailLink.href = urls.detailPage(id);
+      detailLink.hidden = false;
+    }
   }
 
   function poll(id) {
@@ -144,17 +147,12 @@
           return;
         }
         if (s.is_finished) {
-          clearInterval(timer);
-          startBtn.disabled = false;
+          clearInterval(timer);  // 결과를 그리는 동안 다음 tick이 끼어들지 않게 먼저 멈춘다
           if (s.status === "SUCCESS") await showResult(id);
-          else showError(s.error_message || "분석에 실패했습니다.");
-          detailLink.href = urls.detailPage(id);
-          detailLink.hidden = false;
+          stopPolling(id, s.status === "SUCCESS" ? "" : s.error_message || "분석에 실패했습니다.");
         }
       } catch (err) {
-        clearInterval(timer);
-        startBtn.disabled = false;
-        showError(err.message);
+        stopPolling(null, err.message);
       }
     };
     tick();
