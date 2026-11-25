@@ -1,0 +1,811 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3089" height="3427" viewBox="0 0 3089 3427" font-family="Noto Sans CJK KR, Malgun Gothic, sans-serif" xmlns:c2pa="http://c2pa.org/manifest">
+<rect width="3089" height="3427" fill="#fff"/>
+<text x="44" y="64" font-size="40" font-weight="700" fill="#1E293B">Architecture · Vision Action Platform</text>
+<text x="44" y="102" font-size="19" fill="#475569">One click = top row (1 → 8) the request travels to the AI → bottom row (9 → 12) the result is saved in PostgreSQL and comes back to the screen · above each arrow = data format</text>
+<line x1="31.0" y1="128" x2="1529.0" y2="128" stroke="#6D28D9" stroke-width="5"/>
+<text x="31.0" y="158" font-size="19" font-weight="700" fill="#6D28D9">backend/ · django + celery (same image) — accept request · save job · enqueue · get video</text>
+<line x1="1551.0" y1="128" x2="3049.0" y2="128" stroke="#0E7490" stroke-width="5"/>
+<text x="1551.0" y="158" font-size="19" font-weight="700" fill="#0E7490">ai_service/ · fastapi — video → per-person action JSON only (no DB access)</text>
+<line x1="210" y1="370" x2="210" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="210" y1="622" x2="210" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="31.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(45.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></g>
+<text x="81.0" y="211" font-size="18" font-weight="700" fill="#1E293B">Start: page URL (login)</text>
+<text x="81.0" y="239" font-size="15" fill="#475569">GET / → config/urls.py path("")</text>
+<text x="81.0" y="262" font-size="15" fill="#475569">→ analyses/urls.py → page_views.index</text>
+<text x="81.0" y="285" font-size="15" fill="#475569">  @login_required (else → login)</text>
+<text x="81.0" y="308" font-size="15" fill="#475569">→ index.html  data-list-url =</text>
+<text x="81.0" y="331" font-size="15" fill="#475569">  {% url 'api:analysis-list' %}</text>
+<text x="81.0" y="354" font-size="15" fill="#475569">→ static/js/analyses.js (WhiteNoise)</text>
+<rect x="31.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(45.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></g>
+<text x="81.0" y="707" font-size="18" font-weight="700" fill="#1E293B">Sent · multipart FormData</text>
+<text x="81.0" y="735" font-size="15" fill="#475569">input_type: UPLOAD / WEBCAM</text>
+<text x="81.0" y="758" font-size="15" fill="#475569">video_file or camera_index</text>
+<text x="81.0" y="781" font-size="15" fill="#475569">title · memo · expected_action</text>
+<text x="81.0" y="804" font-size="15" fill="#475569">header X-CSRFToken · session cookie</text>
+<text x="81.0" y="827" font-size="15" fill="#475569">← 202 JSON {id, task_id, status,</text>
+<text x="81.0" y="850" font-size="15" fill="#475569">     status_url}</text>
+<line x1="590" y1="370" x2="590" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="590" y1="622" x2="590" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="411.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(425.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h7a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h7"/></g>
+<text x="461.0" y="211" font-size="18" font-weight="700" fill="#1E293B">Follow the URL (API)</text>
+<text x="461.0" y="239" font-size="15" fill="#475569">config/urls.py path("api/v1/")</text>
+<text x="461.0" y="262" font-size="15" fill="#475569">→ config/api_urls.py (app_name="api")</text>
+<text x="461.0" y="285" font-size="15" fill="#475569">→ analyses/api_urls.py</text>
+<text x="461.0" y="308" font-size="15" fill="#475569">  router.register("analyses", ...)</text>
+<text x="461.0" y="331" font-size="15" fill="#475569">→ views.AnalysisJobViewSet.create()</text>
+<text x="461.0" y="354" font-size="15" fill="#475569">SessionAuth · IsAuthenticated</text>
+<rect x="411.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(425.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></g>
+<text x="461.0" y="707" font-size="18" font-weight="700" fill="#1E293B">serializers.py check → save</text>
+<text x="461.0" y="735" font-size="15" fill="#475569">AnalysisJobCreateSerializer</text>
+<text x="461.0" y="758" font-size="15" fill="#475569">  mp4 · mov · avi · mkv · max 100MB</text>
+<text x="461.0" y="781" font-size="15" fill="#475569">  WEBCAM: allowed camera index only</text>
+<text x="461.0" y="804" font-size="15" fill="#475569">save(user, celery_task_id=uuid4)</text>
+<text x="461.0" y="827" font-size="15" fill="#475569">  → 1 AnalysisJob row PENDING</text>
+<text x="461.0" y="850" font-size="15" fill="#475569">on_commit → enqueue_analysis()</text>
+<text x="461.0" y="873" font-size="15" fill="#475569">  enqueue fails → FAILURE · 503</text>
+<line x1="970" y1="370" x2="970" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="970" y1="622" x2="970" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="791.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(805.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g>
+<text x="841.0" y="211" font-size="18" font-weight="700" fill="#1E293B">Connection settings</text>
+<text x="841.0" y="239" font-size="15" fill="#475569">.env CELERY_BROKER_URL</text>
+<text x="841.0" y="262" font-size="15" fill="#475569">  = redis://redis:6379/0</text>
+<text x="841.0" y="285" font-size="15" fill="#475569">CELERY_RESULT_BACKEND = .../1</text>
+<text x="841.0" y="308" font-size="15" fill="#475569">config/celery.py: Celery("config")</text>
+<text x="841.0" y="331" font-size="15" fill="#475569">  autodiscover_tasks() → tasks.py</text>
+<text x="841.0" y="354" font-size="15" fill="#475569">retry max_retries 2 · connect 3 s</text>
+<rect x="791.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(805.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/></g>
+<text x="841.0" y="707" font-size="18" font-weight="700" fill="#1E293B">What Redis holds</text>
+<text x="841.0" y="735" font-size="15" fill="#475569">task message: run_analysis · [job_id]</text>
+<text x="841.0" y="758" font-size="15" fill="#475569">  + task_id (uuid4)</text>
+<text x="841.0" y="781" font-size="15" fill="#475569">result /1: return {job_id, status} only</text>
+<text x="841.0" y="804" font-size="15" fill="#475569">business data only in PostgreSQL</text>
+<text x="841.0" y="827" font-size="15" fill="#475569">port not published (compose only)</text>
+<line x1="1350" y1="370" x2="1350" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="1350" y1="622" x2="1350" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="1171.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1185.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="5" cy="6" r="1.2"/><circle cx="5" cy="12" r="1.2"/><circle cx="5" cy="18" r="1.2"/></g>
+<text x="1221.0" y="211" font-size="18" font-weight="700" fill="#1E293B">Steps (analyses/tasks.py)</text>
+<text x="1221.0" y="239" font-size="15" fill="#475569">① get(pk=job_id) → save STARTED</text>
+<text x="1221.0" y="262" font-size="15" fill="#475569">② _prepare_video(job) → mp4 path</text>
+<text x="1221.0" y="285" font-size="15" fill="#475569">③ services.predict_video(path, job_id)</text>
+<text x="1221.0" y="308" font-size="15" fill="#475569">④ save_result(job, data) → node 9</text>
+<text x="1221.0" y="331" font-size="15" fill="#475569">error → _fail(job, message) · FAILURE</text>
+<text x="1221.0" y="354" font-size="15" fill="#475569">time limit 600 s (soft 570 s)</text>
+<rect x="1171.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1185.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>
+<text x="1221.0" y="707" font-size="18" font-weight="700" fill="#1E293B">Get video · job log</text>
+<text x="1221.0" y="735" font-size="15" fill="#475569">UPLOAD: media/videos/YYYY/MM/DD/</text>
+<text x="1221.0" y="758" font-size="15" fill="#475569">WEBCAM: capture_clip() 8 s · 30 fps</text>
+<text x="1221.0" y="781" font-size="15" fill="#475569">  → media/captures/.../job_{id}.mp4</text>
+<text x="1221.0" y="804" font-size="15" fill="#475569">media_data volume (django ↔ celery)</text>
+<text x="1221.0" y="827" font-size="15" fill="#475569">log job#N: wait · video · AI · save s</text>
+<text x="1221.0" y="850" font-size="15" fill="#475569">  time +0900 (KST)</text>
+<line x1="1730" y1="370" x2="1730" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="1730" y1="622" x2="1730" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="1551.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1565.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z"/></g>
+<text x="1601.0" y="211" font-size="18" font-weight="700" fill="#1E293B">Start: main.py lifespan (once)</text>
+<text x="1601.0" y="239" font-size="15" fill="#475569">uvicorn main:app --port 8001</text>
+<text x="1601.0" y="262" font-size="15" fill="#475569">load_project_config() ← project.json</text>
+<text x="1601.0" y="285" font-size="15" fill="#475569">load_action_model() ← checks 3 files</text>
+<text x="1601.0" y="308" font-size="15" fill="#475569">PosePipeline(config) ← yolo11n-pose.pt</text>
+<text x="1601.0" y="331" font-size="15" fill="#475569">→ kept in app.state, reused</text>
+<text x="1601.0" y="354" font-size="15" fill="#475569">failure → /health degraded · 503</text>
+<rect x="1551.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1565.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></g>
+<text x="1601.0" y="707" font-size="18" font-weight="700" fill="#1E293B">FastAPI errors → FAILURE</text>
+<text x="1601.0" y="735" font-size="15" fill="#475569">400 extension · empty file</text>
+<text x="1601.0" y="758" font-size="15" fill="#475569">413 over 100MB</text>
+<text x="1601.0" y="781" font-size="15" fill="#475569">422 unreadable video (VideoReadError)</text>
+<text x="1601.0" y="804" font-size="15" fill="#475569">503 model not ready (load_error)</text>
+<text x="1601.0" y="827" font-size="15" fill="#475569">→ services.py AIServiceError → _fail</text>
+<text x="1601.0" y="850" font-size="15" fill="#475569">log job#N (X-Job-ID header)</text>
+<line x1="2110" y1="370" x2="2110" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="2110" y1="622" x2="2110" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="1931.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1945.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></g>
+<text x="1981.0" y="211" font-size="18" font-weight="700" fill="#1E293B">ai_service/project.json</text>
+<text x="1981.0" y="239" font-size="15" fill="#475569">pose_model yolo11n-pose.pt</text>
+<text x="1981.0" y="262" font-size="15" fill="#475569">image_size 640 · person_confidence 0.25</text>
+<text x="1981.0" y="285" font-size="15" fill="#475569">day08_multi_person.tracker</text>
+<text x="1981.0" y="308" font-size="15" fill="#475569">  = bytetrack.yaml · lost 2.0 s</text>
+<text x="1981.0" y="331" font-size="15" fill="#475569">.env POSE_DEVICE=cpu · POSE_WEIGHTS</text>
+<text x="1981.0" y="354" font-size="15" fill="#475569">MAX_VIDEO_SECONDS 60 (cut longer)</text>
+<rect x="1931.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1945.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></g>
+<text x="1981.0" y="707" font-size="18" font-weight="700" fill="#1E293B">probe_video() → model.track()</text>
+<text x="1981.0" y="735" font-size="15" fill="#475569">fps · frames · duration_sec</text>
+<text x="1981.0" y="758" font-size="15" fill="#475569">stream=True · persist=False</text>
+<text x="1981.0" y="781" font-size="15" fill="#475569">per frame boxes.id = track_id</text>
+<text x="1981.0" y="804" font-size="15" fill="#475569">video time t = frame_idx / fps</text>
+<text x="1981.0" y="827" font-size="15" fill="#475569">no person → tracks []</text>
+<text x="1981.0" y="850" font-size="15" fill="#475569">  → person_found false</text>
+<line x1="2490" y1="370" x2="2490" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="2490" y1="622" x2="2490" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="2311.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(2325.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="5" cy="6" r="1.2"/><circle cx="5" cy="12" r="1.2"/><circle cx="5" cy="18" r="1.2"/></g>
+<text x="2361.0" y="211" font-size="18" font-weight="700" fill="#1E293B">38-D frame feature (1 person)</text>
+<text x="2361.0" y="239" font-size="15" fill="#475569">src/multi_person_utils.py</text>
+<text x="2361.0" y="262" font-size="15" fill="#475569">  feature_from_keypoints(kp)</text>
+<text x="2361.0" y="285" font-size="15" fill="#475569">normalize_by_shoulder_width → 34</text>
+<text x="2361.0" y="308" font-size="15" fill="#475569">selected_joint_angles → 4 (elbow · knee)</text>
+<text x="2361.0" y="331" font-size="15" fill="#475569">functions: src/feature_utils.py</text>
+<text x="2361.0" y="354" font-size="15" fill="#475569">bad shape → None (gap)</text>
+<rect x="2311.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(2325.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g>
+<text x="2361.0" y="707" font-size="18" font-weight="700" fill="#1E293B">Build 30 steps (window)</text>
+<text x="2361.0" y="735" font-size="15" fill="#475569">src/realtime_utils.py</text>
+<text x="2361.0" y="758" font-size="15" fill="#475569">TimedFeatureBuffer 5 s</text>
+<text x="2361.0" y="781" font-size="15" fill="#475569">  is_ready(0.8, 0.6, 10)</text>
+<text x="2361.0" y="804" font-size="15" fill="#475569">resample_sequence → (30, 38)</text>
+<text x="2361.0" y="827" font-size="15" fill="#475569">flatten_sequence → (1, 1140)</text>
+<text x="2361.0" y="850" font-size="15" fill="#475569">under 5 s → whole_track once</text>
+<line x1="2870" y1="370" x2="2870" y2="422" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<line x1="2870" y1="622" x2="2870" y2="674" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="2691.0" y="178" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(2705.0,195) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g>
+<text x="2741.0" y="211" font-size="18" font-weight="700" fill="#1E293B">ai_service/models/ (ro)</text>
+<text x="2741.0" y="239" font-size="15" fill="#475569">rf_action_baseline.joblib  model</text>
+<text x="2741.0" y="262" font-size="15" fill="#475569">rf_feature_columns.json  1,140 order</text>
+<text x="2741.0" y="285" font-size="15" fill="#475569">rf_training_info.json  steps 30 · 6</text>
+<text x="2741.0" y="308" font-size="15" fill="#475569">check: n_features_in_ = 1,140</text>
+<text x="2741.0" y="331" font-size="15" fill="#475569">  cols = sequence_feature_names(30)</text>
+<text x="2741.0" y="354" font-size="15" fill="#475569">compose → /app/models (read-only)</text>
+<rect x="2691.0" y="674" width="358" height="215" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(2705.0,691) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l5 7h-3l4 6H6l4-6H7z"/><path d="M12 16v5"/></g>
+<text x="2741.0" y="707" font-size="18" font-weight="700" fill="#1E293B">Summarize</text>
+<text x="2741.0" y="735" font-size="15" fill="#475569">predict_proba every 0.25 s</text>
+<text x="2741.0" y="758" font-size="15" fill="#475569">mean of window probs → argmax</text>
+<text x="2741.0" y="781" font-size="15" fill="#475569">column order = model.classes_</text>
+<text x="2741.0" y="804" font-size="15" fill="#475569">→ action_label · confidence</text>
+<text x="2741.0" y="827" font-size="15" fill="#475569">  windows · frame_count</text>
+<text x="2741.0" y="850" font-size="15" fill="#475569">  probabilities {6 classes}</text>
+<line x1="332.0" y1="528.0" x2="448.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M444.0 513.0 L468.0 528.0 L444.0 543.0 Z" fill="#1E1B4B"/>
+<text x="400.0" y="466.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">POST /api/v1/</text>
+<text x="400.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">analyses/</text>
+<text x="400.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">FormData</text>
+<text x="400.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">request</text>
+<text x="400.0" y="584.0" font-size="14" fill="#475569" text-anchor="middle">← 202 JSON</text>
+<line x1="712.0" y1="528.0" x2="828.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M824.0 513.0 L848.0 528.0 L824.0 543.0 Z" fill="#1E1B4B"/>
+<text x="780.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">apply_async</text>
+<text x="780.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">([pk], task_id)</text>
+<text x="780.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">Redis message</text>
+<text x="780.0" y="584.0" font-size="14" fill="#475569" text-anchor="middle">after commit</text>
+<line x1="1092.0" y1="528.0" x2="1208.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M1204.0 513.0 L1228.0 528.0 L1204.0 543.0 Z" fill="#1E1B4B"/>
+<text x="1160.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">run_analysis</text>
+<text x="1160.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">(job_id)</text>
+<text x="1160.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">worker</text>
+<text x="1160.0" y="584.0" font-size="14" fill="#475569" text-anchor="middle">takes it</text>
+<line x1="1472.0" y1="528.0" x2="1588.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M1584.0 513.0 L1608.0 528.0 L1584.0 543.0 Z" fill="#1E1B4B"/>
+<text x="1540.0" y="466.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">POST</text>
+<text x="1540.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">/predict/video</text>
+<text x="1540.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">multipart mp4</text>
+<text x="1540.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">send video</text>
+<line x1="1852.0" y1="528.0" x2="1968.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M1964.0 513.0 L1988.0 528.0 L1964.0 543.0 Z" fill="#1E1B4B"/>
+<text x="1920.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">process_video</text>
+<text x="1920.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">(tmp.name)</text>
+<text x="1920.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">temp mp4 path</text>
+<line x1="2232.0" y1="528.0" x2="2348.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M2344.0 513.0 L2368.0 528.0 L2344.0 543.0 Z" fill="#1E1B4B"/>
+<text x="2300.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">keypoints.xy</text>
+<text x="2300.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">(people, 17, 2)</text>
+<text x="2300.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">joints per</text>
+<text x="2300.0" y="584.0" font-size="14" fill="#475569" text-anchor="middle">person</text>
+<line x1="2612.0" y1="528.0" x2="2728.0" y2="528.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M2724.0 513.0 L2748.0 528.0 L2724.0 543.0 Z" fill="#1E1B4B"/>
+<text x="2680.0" y="484.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">ndarray</text>
+<text x="2680.0" y="502.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">(1, 1140)</text>
+<text x="2680.0" y="566.0" font-size="14" fill="#475569" text-anchor="middle">1,140 numbers</text>
+<text x="2680.0" y="584.0" font-size="14" fill="#475569" text-anchor="middle">per window</text>
+<rect x="90.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#475569" stroke-width="3"/>
+<g transform="translate(192,452) scale(1.5)" fill="none" stroke="#475569" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></g>
+<text x="210" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Browser</text>
+<rect x="98.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="210" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">analysis page · click</text>
+<text x="210" y="580" font-size="14.5" fill="#475569" text-anchor="middle">templates/analyses/index.html</text>
+<text x="210" y="603" font-size="14.5" font-weight="700" fill="#475569" text-anchor="middle">static/js/analyses.js</text>
+<circle cx="94.0" cy="426" r="18" fill="#475569"/>
+<text x="94.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<rect x="470.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#6D28D9" stroke-width="3"/>
+<g transform="translate(572,452) scale(1.5)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M7 13h4M7 16h7"/></g>
+<text x="590" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Django · DRF</text>
+<rect x="478.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="590" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">accept · save job · enqueue</text>
+<text x="590" y="580" font-size="14.5" fill="#475569" text-anchor="middle">analyses/views.py</text>
+<text x="590" y="603" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="middle">AnalysisJobViewSet.create()</text>
+<circle cx="474.0" cy="426" r="18" fill="#6D28D9"/>
+<text x="474.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<rect x="600.14" y="432" width="101.86" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="651.07" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">django :8000</text>
+<rect x="850.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#6D28D9" stroke-width="3"/>
+<g transform="translate(952,452) scale(1.5)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></g>
+<text x="970" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Redis</text>
+<rect x="858.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="970" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">job queue (Celery broker)</text>
+<text x="970" y="580" font-size="14.5" fill="#475569" text-anchor="middle">redis://redis:6379/0</text>
+<text x="970" y="603" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="middle">message = run_analysis</text>
+<circle cx="854.0" cy="426" r="18" fill="#6D28D9"/>
+<text x="854.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+<rect x="1030.755" y="432" width="51.245" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="1056.3775" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">redis</text>
+<rect x="1230.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#6D28D9" stroke-width="3"/>
+<g transform="translate(1332,452) scale(1.5)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></g>
+<text x="1350" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Celery Worker</text>
+<rect x="1238.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="1350" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">get video · call AI · save</text>
+<text x="1350" y="580" font-size="14.5" fill="#475569" text-anchor="middle">analyses/tasks.py</text>
+<text x="1350" y="603" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="middle">run_analysis(job_id)</text>
+<circle cx="1234.0" cy="426" r="18" fill="#6D28D9"/>
+<text x="1234.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+<rect x="1403.07" y="432" width="58.93" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="1432.535" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">celery</text>
+<rect x="1610.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#2563EB" stroke-width="3"/>
+<g transform="translate(1712,452) scale(1.5)" fill="none" stroke="#2563EB" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></g>
+<text x="1730" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">FastAPI</text>
+<rect x="1618.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="1730" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">receive · check · infer</text>
+<text x="1730" y="580" font-size="14.5" fill="#475569" text-anchor="middle">routers/predictions.py</text>
+<text x="1730" y="603" font-size="14.5" font-weight="700" fill="#2563EB" text-anchor="middle">predict_video()</text>
+<circle cx="1614.0" cy="426" r="18" fill="#2563EB"/>
+<text x="1614.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+<rect x="1735.635" y="432" width="106.36500000000001" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="1788.8175" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">fastapi :8001</text>
+<rect x="1990.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#2563EB" stroke-width="3"/>
+<g transform="translate(2092,452) scale(1.5)" fill="none" stroke="#2563EB" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M7 10l5 2 5-2M9 21l3-7 3 7"/></g>
+<text x="2110" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">YOLO Pose</text>
+<rect x="1998.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="2110" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">find · track · 17 joints</text>
+<text x="2110" y="580" font-size="14.5" fill="#475569" text-anchor="middle">services/pose_pipeline.py</text>
+<text x="2110" y="603" font-size="14.5" font-weight="700" fill="#2563EB" text-anchor="middle">PosePipeline.process_video()</text>
+<circle cx="1994.0" cy="426" r="18" fill="#2563EB"/>
+<text x="1994.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+<rect x="2138.69" y="432" width="83.31" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="2180.345" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">in fastapi</text>
+<rect x="2370.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#0E7490" stroke-width="3"/>
+<g transform="translate(2472,452) scale(1.5)" fill="none" stroke="#0E7490" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></g>
+<text x="2490" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">38-D → 1,140</text>
+<rect x="2378.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="2490" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">joints → model input</text>
+<text x="2490" y="580" font-size="14.5" fill="#475569" text-anchor="middle">src/multi_person_utils.py</text>
+<text x="2490" y="603" font-size="14.5" font-weight="700" fill="#0E7490" text-anchor="middle">feature_from_keypoints()</text>
+<circle cx="2374.0" cy="426" r="18" fill="#0E7490"/>
+<text x="2374.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">7</text>
+<rect x="2518.69" y="432" width="83.31" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="2560.345" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">in fastapi</text>
+<rect x="2750.0" y="422" width="240" height="200" rx="12" fill="#fff" stroke="#0E7490" stroke-width="3"/>
+<g transform="translate(2852,452) scale(1.5)" fill="none" stroke="#0E7490" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l5 7h-3l4 6H6l4-6H7z"/><path d="M12 16v5"/></g>
+<text x="2870" y="520" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">RandomForest</text>
+<rect x="2758.0" y="532" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="2870" y="550" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">6 action probs → label</text>
+<text x="2870" y="580" font-size="14.5" fill="#475569" text-anchor="middle">services/action_inference.py</text>
+<text x="2870" y="603" font-size="14.5" font-weight="700" fill="#0E7490" text-anchor="middle">predict_tracks()</text>
+<circle cx="2754.0" cy="426" r="18" fill="#0E7490"/>
+<text x="2754.0" y="433" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">8</text>
+<rect x="2898.69" y="432" width="83.31" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="2940.345" y="448" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">in fastapi</text>
+<path d="M2870 889 V941 H1394 V991" fill="none" stroke="#0E7490" stroke-width="4.5"/>
+<path d="M1379 987 L1394 1011 L1409 987 Z" fill="#0E7490"/>
+<rect x="1482.8976000000002" y="926" width="1298.2047999999998" height="30" fill="#fff"/>
+<text x="2132.0" y="947" font-size="16" font-weight="700" fill="#0E7490" text-anchor="middle">200 JSON {person_found · message · processing_ms · video{frames, fps} · predictions[track_id · action_label · confidence · windows · probabilities]}</text>
+<text x="2132.0" y="973" font-size="14.5" fill="#475569" text-anchor="middle">result returned → inside the same run_analysis, services.predict_video() gets a dict and passes it to save_result(job, data)</text>
+<line x1="1228.0" y1="1117.0" x2="1112.0" y2="1117.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M1116.0 1102.0 L1092.0 1117.0 L1116.0 1132.0 Z" fill="#1E1B4B"/>
+<text x="1160.0" y="1073.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">bulk_create</text>
+<text x="1160.0" y="1091.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">+ job.save()</text>
+<text x="1160.0" y="1155.0" font-size="14" fill="#475569" text-anchor="middle">ORM rows</text>
+<line x1="848.0" y1="1117.0" x2="732.0" y2="1117.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M736.0 1102.0 L712.0 1117.0 L736.0 1132.0 Z" fill="#1E1B4B"/>
+<text x="780.0" y="1073.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">visible_to</text>
+<text x="780.0" y="1091.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">(user)</text>
+<text x="780.0" y="1155.0" font-size="14" fill="#475569" text-anchor="middle">read job ·</text>
+<text x="780.0" y="1173.0" font-size="14" fill="#475569" text-anchor="middle">predictions</text>
+<line x1="468.0" y1="1117.0" x2="352.0" y2="1117.0" stroke="#1E1B4B" stroke-width="5"/>
+<path d="M356.0 1102.0 L332.0 1117.0 L356.0 1132.0 Z" fill="#1E1B4B"/>
+<text x="400.0" y="1073.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">status JSON</text>
+<text x="400.0" y="1091.0" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">result JSON</text>
+<text x="400.0" y="1155.0" font-size="14" fill="#475569" text-anchor="middle">poll 2 s</text>
+<text x="400.0" y="1173.0" font-size="14" fill="#475569" text-anchor="middle">max 10 min</text>
+<rect x="1230.0" y="1011" width="240" height="200" rx="12" fill="#fff" stroke="#6D28D9" stroke-width="3"/>
+<g transform="translate(1332,1041) scale(1.5)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></g>
+<text x="1350" y="1109" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Celery Worker</text>
+<rect x="1238.0" y="1121" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="1350" y="1139" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">check result · save to DB</text>
+<text x="1350" y="1169" font-size="14.5" fill="#475569" text-anchor="middle">analyses/tasks.py</text>
+<text x="1350" y="1192" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="middle">save_result(job, data)</text>
+<circle cx="1234.0" cy="1015" r="18" fill="#6D28D9"/>
+<text x="1234.0" y="1022" font-size="19" font-weight="700" fill="#fff" text-anchor="middle">9</text>
+<rect x="1403.07" y="1021" width="58.93" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="1432.535" y="1037" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">celery</text>
+<line x1="1350" y1="1211" x2="1350" y2="1263" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="1171.0" y="1263" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(1185.0,1280) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="5" cy="6" r="1.2"/><circle cx="5" cy="12" r="1.2"/><circle cx="5" cy="18" r="1.2"/></g>
+<text x="1221.0" y="1296" font-size="18" font-weight="700" fill="#1E293B">save_result() steps</text>
+<text x="1221.0" y="1324" font-size="15" fill="#475569">action_label ∈ ActionLabel (6)</text>
+<text x="1221.0" y="1347" font-size="15" fill="#475569">  else AIServiceError → _fail</text>
+<text x="1221.0" y="1370" font-size="15" fill="#475569">transaction.atomic():</text>
+<text x="1221.0" y="1393" font-size="15" fill="#475569">  delete old → bulk_create</text>
+<text x="1221.0" y="1416" font-size="15" fill="#475569">job: SUCCESS · video_* · processing_ms</text>
+<text x="1221.0" y="1439" font-size="15" fill="#475569">  result_message · finished_at</text>
+<rect x="850.0" y="1011" width="240" height="200" rx="12" fill="#fff" stroke="#2563EB" stroke-width="3"/>
+<g transform="translate(952,1041) scale(1.5)" fill="none" stroke="#2563EB" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></g>
+<text x="970" y="1109" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">PostgreSQL 16</text>
+<rect x="858.0" y="1121" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="970" y="1139" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">job 1 : N predictions</text>
+<text x="970" y="1169" font-size="14.5" fill="#475569" text-anchor="middle">analyses/models.py</text>
+<text x="970" y="1192" font-size="14.5" font-weight="700" fill="#2563EB" text-anchor="middle">AnalysisJob · PersonPrediction</text>
+<circle cx="854.0" cy="1015" r="18" fill="#2563EB"/>
+<text x="854.0" y="1022" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">10</text>
+<rect x="964.77" y="1021" width="117.23" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="1023.385" y="1037" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">postgres :5432</text>
+<line x1="970" y1="1211" x2="970" y2="1263" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="791.0" y="1263" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(805.0,1280) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M10 4v16"/></g>
+<text x="841.0" y="1296" font-size="18" font-weight="700" fill="#1E293B">Tables (Django ORM)</text>
+<text x="841.0" y="1324" font-size="15" fill="#475569">auth_user 1 ─ N analysisjob 1 ─ N</text>
+<text x="841.0" y="1347" font-size="15" fill="#475569">  personprediction</text>
+<text x="841.0" y="1370" font-size="15" fill="#475569">job: user · input_type · status</text>
+<text x="841.0" y="1393" font-size="15" fill="#475569">  celery_task_id · video_file path</text>
+<text x="841.0" y="1416" font-size="15" fill="#475569">pred: track_id · action_label</text>
+<text x="841.0" y="1439" font-size="15" fill="#475569">  confidence · probabilities (JSON)</text>
+<rect x="470.0" y="1011" width="240" height="200" rx="12" fill="#fff" stroke="#6D28D9" stroke-width="3"/>
+<g transform="translate(572,1041) scale(1.5)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M7 13h4M7 16h7"/></g>
+<text x="590" y="1109" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Django · DRF</text>
+<rect x="478.0" y="1121" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="590" y="1139" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">own jobs only · JSON</text>
+<text x="590" y="1169" font-size="14.5" fill="#475569" text-anchor="middle">views.py · serializers.py</text>
+<text x="590" y="1192" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="middle">status() · retrieve()</text>
+<circle cx="474.0" cy="1015" r="18" fill="#6D28D9"/>
+<text x="474.0" y="1022" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">11</text>
+<rect x="600.14" y="1021" width="101.86" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1"/>
+<text x="651.07" y="1037" font-size="12.5" font-weight="700" fill="#475569" text-anchor="middle">django :8000</text>
+<line x1="590" y1="1211" x2="590" y2="1263" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="411.0" y="1263" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(425.0,1280) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4c-2 0-3 1-3 3v2c0 1.5-1 3-2 3 1 0 2 1.5 2 3v2c0 2 1 3 3 3M15 4c2 0 3 1 3 3v2c0 1.5 1 3 2 3-1 0-2 1.5-2 3v2c0 2-1 3-3 3"/></g>
+<text x="461.0" y="1296" font-size="18" font-weight="700" fill="#1E293B">Response JSON (serializers.py)</text>
+<text x="461.0" y="1324" font-size="15" fill="#475569">status/ → AnalysisJobStatusSerializer</text>
+<text x="461.0" y="1347" font-size="15" fill="#475569">  status · is_finished · is_stale</text>
+<text x="461.0" y="1370" font-size="15" fill="#475569">  prediction_count (COUNT only)</text>
+<text x="461.0" y="1393" font-size="15" fill="#475569">{id}/ → AnalysisJobSerializer</text>
+<text x="461.0" y="1416" font-size="15" fill="#475569">  + predictions[] · is_uncertain</text>
+<text x="461.0" y="1439" font-size="15" fill="#475569">other user's id → 404 (visible_to)</text>
+<rect x="90.0" y="1011" width="240" height="200" rx="12" fill="#fff" stroke="#475569" stroke-width="3"/>
+<g transform="translate(192,1041) scale(1.5)" fill="none" stroke="#475569" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></g>
+<text x="210" y="1109" font-size="23" font-weight="700" fill="#1E293B" text-anchor="middle">Browser</text>
+<rect x="98.0" y="1121" width="224" height="25" rx="4" fill="#F1F5F9"/>
+<text x="210" y="1139" font-size="14.5" font-weight="700" fill="#1E293B" text-anchor="middle">status · result table</text>
+<text x="210" y="1169" font-size="14.5" fill="#475569" text-anchor="middle">static/js/analyses.js</text>
+<text x="210" y="1192" font-size="14.5" font-weight="700" fill="#475569" text-anchor="middle">poll() · showResult()</text>
+<circle cx="94.0" cy="1015" r="18" fill="#475569"/>
+<text x="94.0" y="1022" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">12</text>
+<line x1="210" y1="1211" x2="210" y2="1263" stroke="#94A3B8" stroke-width="2" stroke-dasharray="6 6"/>
+<rect x="31.0" y="1263" width="358" height="192" rx="7" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<g transform="translate(45.0,1280) scale(1.05)" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></g>
+<text x="81.0" y="1296" font-size="18" font-weight="700" fill="#1E293B">Display (analyses.js)</text>
+<text x="81.0" y="1324" font-size="15" fill="#475569">poll(): GET status/ every 2 s</text>
+<text x="81.0" y="1347" font-size="15" fill="#475569">  stops after 10 min with notice</text>
+<text x="81.0" y="1370" font-size="15" fill="#475569">is_stale → stuck job notice</text>
+<text x="81.0" y="1393" font-size="15" fill="#475569">SUCCESS → showResult(): GET {id}/</text>
+<text x="81.0" y="1416" font-size="15" fill="#475569">is_uncertain → 'uncertain' badge</text>
+<text x="81.0" y="1439" font-size="15" fill="#475569">link to /analyses/{id}/</text>
+<path d="M710.0 594 H780.0 V981 H926 V1007" fill="none" stroke="#2563EB" stroke-width="2.6" stroke-dasharray="8 6"/>
+<path d="M915 993 L926 1011 L937 993 Z" fill="#2563EB"/>
+<text x="770.0" y="971" font-size="14.5" font-weight="700" fill="#2563EB" text-anchor="end">INSERT AnalysisJob (PENDING)</text>
+<path d="M1306 622 V642 H1160.0 V959 H1014 V1007" fill="none" stroke="#2563EB" stroke-width="2.6" stroke-dasharray="8 6"/>
+<path d="M1003 993 L1014 1011 L1025 993 Z" fill="#2563EB"/>
+<text x="1026" y="949" font-size="14.5" font-weight="700" fill="#2563EB">UPDATE STARTED · FAILURE(_fail)</text>
+<rect x="1551.0" y="997" width="738.0" height="202" rx="10" fill="#F8FAFC" stroke="#475569" stroke-width="2.2"/>
+<g transform="translate(1569.0,1015) scale(1.2)" fill="none" stroke="#475569" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V5M16 20v-7M3 20h18"/></g>
+<text x="1613.0" y="1033" font-size="18.5" font-weight="700" fill="#1E293B">Admin screens · is_staff only</text>
+<text x="1613.0" y="1061" font-size="15" fill="#475569">GET /dashboard/ → page_views.dashboard (@staff_member_required)</text>
+<text x="1613.0" y="1086" font-size="15" fill="#475569">_count_by() GROUP BY · Avg(processing_ms) → chart_data</text>
+<text x="1613.0" y="1111" font-size="15" fill="#475569">dashboard.html json_script → static/js/dashboard.js · 4 Chart.js charts</text>
+<text x="1613.0" y="1136" font-size="15" fill="#475569">/admin/ → admin.py AnalysisJobAdmin (prediction count annotate · filters)</text>
+<text x="1613.0" y="1161" font-size="15" fill="#475569">/analyses/{id}/ → page_views.detail (visible_to · others 404)</text>
+<text x="1613.0" y="1186" font-size="15" fill="#475569">browser → django :8000 (FastAPI never sees the DB)</text>
+<rect x="2311.0" y="997" width="738.0" height="202" rx="10" fill="#FAF5FF" stroke="#6D28D9" stroke-width="2.2"/>
+<g transform="translate(2329.0,1015) scale(1.2)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7l2-3h4l2 3"/><circle cx="12" cy="13.5" r="3.5"/></g>
+<text x="2373.0" y="1033" font-size="18.5" font-weight="700" fill="#1E293B">Webcam live preview · django</text>
+<text x="2373.0" y="1061" font-size="15" fill="#475569">WEBCAM tab → &lt;img src="/cameras/&lt;index&gt;/stream/"&gt;</text>
+<text x="2373.0" y="1086" font-size="15" fill="#475569">analyses/urls.py → stream_views.camera_stream (@login_required · GET)</text>
+<text x="2373.0" y="1111" font-size="15" fill="#475569">get_allowed_camera_url(index): not in allow list → 404</text>
+<text x="2373.0" y="1136" font-size="15" fill="#475569">requests.get(stream) → relays MJPEG bytes as-is (no re-encode)</text>
+<text x="2373.0" y="1161" font-size="15" fill="#475569">CAMERA_PREVIEW_MAX_SECONDS 60 s · camera down 502</text>
+<text x="2373.0" y="1186" font-size="15" fill="#475569">camera IP never reaches the browser · separate from capture_clip</text>
+<rect x="1551.0" y="1217" width="738.0" height="238" rx="10" fill="#FAF5FF" stroke="#6D28D9" stroke-width="2.2"/>
+<g transform="translate(1569.0,1235) scale(1.2)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></g>
+<text x="1613.0" y="1253" font-size="18.5" font-weight="700" fill="#1E293B">Accounts · accounts/ (pages)</text>
+<text x="1613.0" y="1281" font-size="15" fill="#475569">/accounts/signup/ → views.signup (SignUpForm) → logs in right away</text>
+<text x="1613.0" y="1306" font-size="15" fill="#475569">/accounts/login/ → LoginView (redirect_authenticated_user) · session cookie</text>
+<text x="1613.0" y="1331" font-size="15" fill="#475569">/accounts/logout/ → LogoutView (POST only)</text>
+<text x="1613.0" y="1356" font-size="15" fill="#475569">GET /api/v1/auth/me/ → accounts.views.me → MeSerializer</text>
+<text x="1613.0" y="1381" font-size="15" fill="#475569">  {id, username, email, is_staff, date_joined}</text>
+<rect x="2311.0" y="1217" width="738.0" height="238" rx="10" fill="#FAF5FF" stroke="#6D28D9" stroke-width="2.2"/>
+<g transform="translate(2329.0,1235) scale(1.2)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></g>
+<text x="2373.0" y="1253" font-size="18.5" font-weight="700" fill="#1E293B">Health checks · start order</text>
+<text x="2373.0" y="1281" font-size="15" fill="#475569">GET /api/v1/health/ → config/health.py (no login · GET only)</text>
+<text x="2373.0" y="1306" font-size="15" fill="#475569">_check_db: SELECT 1 · _check_redis: ping (2 s timeout)</text>
+<text x="2373.0" y="1331" font-size="15" fill="#475569">200 {status: ok, checks{db, redis: ms}} · any failure 503</text>
+<text x="2373.0" y="1356" font-size="15" fill="#475569">FastAPI GET /health → model_loaded · classes · n_features</text>
+<text x="2373.0" y="1381" font-size="15" fill="#475569">compose healthcheck → depends_on service_healthy start order</text>
+<path d="M1040 1211 V1237 H1515.0 V1159 H1533.0" fill="none" stroke="#475569" stroke-width="3.2"/>
+<path d="M1531.0 1148 L1551.0 1159 L1531.0 1170 Z" fill="#475569"/>
+<rect x="1052" y="1226" width="196.7512" height="22" fill="#fff"/>
+<text x="1060" y="1242" font-size="14.5" font-weight="700" fill="#1E293B">ORM aggregate → admin</text>
+<rect x="31.0" y="1501" width="1498.0" height="227" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2.2"/>
+<g transform="translate(49.0,1519) scale(1.2)" fill="none" stroke="#2563EB" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></g>
+<text x="93.0" y="1537" font-size="18.5" font-weight="700" fill="#1E293B">compose.yaml · 5 services (docker compose up --build) · .env ← .env.example</text>
+<text x="93.0" y="1565" font-size="15" fill="#475569">postgres:16-alpine · 5432 internal · volume postgres_data · pg_isready</text>
+<text x="93.0" y="1590" font-size="15" fill="#475569">redis:7-alpine · 6379 internal · redis-cli ping</text>
+<text x="93.0" y="1615" font-size="15" fill="#475569">fastapi · 127.0.0.1:8001 (this PC only) · ./ai_service/models:/app/models:ro · GET /health</text>
+<text x="93.0" y="1640" font-size="15" fill="#475569">django · 8000:8000 · migrate → gunicorn --workers 3 · media_data · GET /api/v1/health/</text>
+<text x="93.0" y="1665" font-size="15" fill="#475569">celery · same backend image · --concurrency=2 · media_data · starts after fastapi healthy</text>
+<text x="93.0" y="1690" font-size="15" fill="#475569">.env: DJANGO_* · POSTGRES_* · CELERY_BROKER_URL · AI_SERVICE_URL · IP_WEBCAM_ALLOWED_URLS · RF_*_FILE</text>
+<text x="93.0" y="1715" font-size="15" fill="#475569">TZ=Asia/Seoul (fastapi · django · celery log times in KST)</text>
+<rect x="1551.0" y="1501" width="738.0" height="227" rx="10" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-dasharray="8 6"/>
+<g transform="translate(1569.0,1519) scale(1.2)" fill="none" stroke="#94A3B8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></g>
+<text x="1613.0" y="1537" font-size="18.5" font-weight="700" fill="#1E293B">Verification · not a runtime step · 51 tests</text>
+<text x="1613.0" y="1565" font-size="15" fill="#475569">docker compose exec django python manage.py test → 51 OK</text>
+<text x="1613.0" y="1590" font-size="15" fill="#475569">analyses/tests.py 36: 202 · 400 · 404 · 409 · 503 · status · logs</text>
+<text x="1613.0" y="1615" font-size="15" fill="#475569">  /api/v1 URLs · health · stuck jobs · query count · is_uncertain</text>
+<text x="1613.0" y="1640" font-size="15" fill="#475569">analyses/test_camera_preview.py 10: login · 404 · 60 s · 502</text>
+<text x="1613.0" y="1665" font-size="15" fill="#475569">accounts/tests.py 5: signup · login/logout · blocked · auth/me</text>
+<text x="1613.0" y="1690" font-size="15" fill="#475569">Celery eager · predict_video mocked → runs without Redis · AI</text>
+<text x="1613.0" y="1715" font-size="15" fill="#475569">no arrows: checks only, changes nothing</text>
+<rect x="2311.0" y="1501" width="738.0" height="227" rx="10" fill="#FAF5FF" stroke="#6D28D9" stroke-width="2" stroke-dasharray="8 6"/>
+<g transform="translate(2329.0,1519) scale(1.2)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="8" r="2"/><path d="M6 7v10M18 10c0 4-6 3-12 7"/></g>
+<text x="2373.0" y="1537" font-size="18.5" font-weight="700" fill="#1E293B">GitHub · vision-action-platform → main</text>
+<text x="2373.0" y="1565" font-size="15" fill="#475569">code · README · docs · .env.example only</text>
+<text x="2373.0" y="1590" font-size="15" fill="#475569">.env · *.joblib · *.pt · media videos stay local</text>
+<text x="2373.0" y="1615" font-size="15" fill="#475569">rf_feature_columns.json · rf_training_info.json are in the repo</text>
+<text x="2373.0" y="1640" font-size="15" fill="#475569">copy the 2 model files into models/ as in the README</text>
+<text x="2373.0" y="1665" font-size="15" fill="#475569">volumes: postgres_data (DB) · media_data (shared videos)</text>
+<rect x="31.0" y="1768" width="3018.0" height="714" rx="10" fill="#fff" stroke="#6D28D9" stroke-width="2.4"/>
+<g transform="translate(49.0,1786) scale(1.2)" fill="none" stroke="#6D28D9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h7a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h7"/></g>
+<text x="93.0" y="1806" font-size="19" font-weight="700" fill="#1E293B">Button flow · one click on "AI 분석 시작" (Start analysis) → file : line → function → next function (circle = node above · at 40d3916)</text>
+<rect x="51.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="71.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="71.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<text x="91.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">templates/analyses/index.html:65</text>
+<text x="65.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">&lt;button id="start-btn"&gt;</text>
+<text x="65.0" y="1924" font-size="14" fill="#475569">submits form#analysis-form</text>
+<rect x="483.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="503.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="503.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<text x="523.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">static/js/analyses.js:86</text>
+<text x="497.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">submit → FormData (:88)</text>
+<text x="497.0" y="1924" font-size="14" fill="#475569">input type · file · camera index</text>
+<rect x="915.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="935.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="935.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<text x="955.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">static/js/analyses.js:100</text>
+<text x="929.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">fetch(urls.list, POST)</text>
+<text x="929.0" y="1924" font-size="14" fill="#475569">X-CSRFToken · session cookie</text>
+<rect x="1347.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="1367.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="1367.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="1387.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">config/urls.py:9</text>
+<text x="1361.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">path("api/v1/", include)</text>
+<text x="1361.0" y="1924" font-size="14" fill="#475569">single API prefix</text>
+<rect x="1779.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="1799.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="1799.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="1819.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">config/api_urls.py:16</text>
+<text x="1793.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">include(analyses.api_urls)</text>
+<text x="1793.0" y="1924" font-size="14" fill="#475569">app_name = "api"</text>
+<rect x="2211.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="2231.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="2231.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="2251.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">analyses/api_urls.py:12</text>
+<text x="2225.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">router.register("analyses")</text>
+<text x="2225.0" y="1924" font-size="14" fill="#475569">DefaultRouter → ViewSet</text>
+<rect x="2643.0" y="1838" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="2663.0" cy="1860" r="14" fill="#6D28D9"/>
+<text x="2663.0" y="1865.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="2683.0" y="1865" font-size="13.5" font-weight="700" fill="#475569">analyses/views.py:71</text>
+<text x="2657.0" y="1896" font-size="16.5" font-weight="700" fill="#1E293B">AnalysisJobViewSet.create()</text>
+<text x="2657.0" y="1924" font-size="14" fill="#475569">after IsAuthenticated</text>
+<rect x="2643.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="2663.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="2663.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="2683.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/serializers.py:47</text>
+<text x="2657.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">AnalysisJobCreateSerializer</text>
+<text x="2657.0" y="2082" font-size="14" fill="#475569">validate_video_file :57 · validate :67</text>
+<rect x="2211.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#2563EB" stroke-width="2"/>
+<circle cx="2231.0" cy="2018" r="14" fill="#2563EB"/>
+<text x="2231.0" y="2023.5" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">10</text>
+<text x="2251.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/views.py:75-76</text>
+<text x="2225.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">uuid4() → serializer.save()</text>
+<text x="2225.0" y="2082" font-size="14" fill="#475569">AnalysisJob INSERT · PENDING</text>
+<rect x="1779.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="1799.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="1799.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+<text x="1819.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/views.py:79 → :36</text>
+<text x="1793.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">on_commit → enqueue_analysis()</text>
+<text x="1793.0" y="2082" font-size="14" fill="#475569">apply_async :39 · fails → FAILURE 503 :86</text>
+<rect x="1347.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="1367.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="1367.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="1387.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/views.py:96</text>
+<text x="1361.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">Response(202)</text>
+<text x="1361.0" y="2082" font-size="14" fill="#475569">{id, task_id, status, status_url}</text>
+<rect x="915.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="935.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="935.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+<text x="955.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/tasks.py:88</text>
+<text x="929.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">run_analysis(job_id)</text>
+<text x="929.0" y="2082" font-size="14" fill="#475569">taken from Redis → save STARTED</text>
+<rect x="483.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="503.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="503.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+<text x="523.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/tasks.py:106 → :34</text>
+<text x="497.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">_prepare_video(job)</text>
+<text x="497.0" y="2082" font-size="14" fill="#475569">WEBCAM → capture_clip() :44</text>
+<rect x="51.0" y="1996" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="71.0" cy="2018" r="14" fill="#6D28D9"/>
+<text x="71.0" y="2023.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+<text x="91.0" y="2023" font-size="13.5" font-weight="700" fill="#475569">analyses/services.py:19</text>
+<text x="65.0" y="2054" font-size="16.5" font-weight="700" fill="#1E293B">predict_video(path, job_id)</text>
+<text x="65.0" y="2082" font-size="14" fill="#475569">requests.post :26 · X-Job-ID header</text>
+<rect x="51.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#0E7490" stroke-width="2"/>
+<circle cx="71.0" cy="2176" r="14" fill="#0E7490"/>
+<text x="71.0" y="2181.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+<text x="91.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">ai_service/routers/predictions.py:33</text>
+<text x="65.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">predict_video(request, file)</text>
+<text x="65.0" y="2240" font-size="14" fill="#475569">503 · 400 · 413 checks → temp file</text>
+<rect x="483.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#2563EB" stroke-width="2"/>
+<circle cx="503.0" cy="2176" r="14" fill="#2563EB"/>
+<text x="503.0" y="2181.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">6</text>
+<text x="523.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">services/pose_pipeline.py:72</text>
+<text x="497.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">PosePipeline.process_video()</text>
+<text x="497.0" y="2240" font-size="14" fill="#475569">predictions.py:56 · model.track() :82</text>
+<rect x="915.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#0E7490" stroke-width="2"/>
+<circle cx="935.0" cy="2176" r="14" fill="#0E7490"/>
+<text x="935.0" y="2181.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">7</text>
+<text x="955.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">src/multi_person_utils.py:11</text>
+<text x="929.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">feature_from_keypoints(kp)</text>
+<text x="929.0" y="2240" font-size="14" fill="#475569">pose_pipeline.py:100 · 38-D</text>
+<rect x="1347.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#0E7490" stroke-width="2"/>
+<circle cx="1367.0" cy="2176" r="14" fill="#0E7490"/>
+<text x="1367.0" y="2181.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">8</text>
+<text x="1387.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">services/action_inference.py:60</text>
+<text x="1361.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">predict_tracks(model, tracks)</text>
+<text x="1361.0" y="2240" font-size="14" fill="#475569">predictions.py:59 · 30 steps → 1,140 → RF</text>
+<rect x="1779.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="1799.0" cy="2176" r="14" fill="#6D28D9"/>
+<text x="1799.0" y="2181.5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">9</text>
+<text x="1819.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">analyses/tasks.py:50</text>
+<text x="1793.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">save_result(job, data)</text>
+<text x="1793.0" y="2240" font-size="14" fill="#475569">200 JSON · atomic :58 · bulk_create :60</text>
+<rect x="2211.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="2231.0" cy="2176" r="14" fill="#6D28D9"/>
+<text x="2231.0" y="2181.5" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">11</text>
+<text x="2251.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">static/js/analyses.js:128 → views.py:119</text>
+<text x="2225.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">poll() → status()</text>
+<text x="2225.0" y="2240" font-size="14" fill="#475569">fetch every 2 s :139 · Count only</text>
+<rect x="2643.0" y="2154" width="386.0" height="104" rx="8" fill="#F8FAFC" stroke="#6D28D9" stroke-width="2"/>
+<circle cx="2663.0" cy="2176" r="14" fill="#6D28D9"/>
+<text x="2663.0" y="2181.5" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">12</text>
+<text x="2683.0" y="2181" font-size="13.5" font-weight="700" fill="#475569">static/js/analyses.js:162</text>
+<text x="2657.0" y="2212" font-size="16.5" font-weight="700" fill="#1E293B">showResult() → result table</text>
+<text x="2657.0" y="2240" font-size="14" fill="#475569">detail link #detail-link (index.html:81)</text>
+<line x1="440.0" y1="1890.0" x2="466.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M464.0 1880.0 L480.0 1890.0 L464.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="872.0" y1="1890.0" x2="898.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M896.0 1880.0 L912.0 1890.0 L896.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="1304.0" y1="1890.0" x2="1330.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1328.0 1880.0 L1344.0 1890.0 L1328.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="1736.0" y1="1890.0" x2="1762.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1760.0 1880.0 L1776.0 1890.0 L1760.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="2168.0" y1="1890.0" x2="2194.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2192.0 1880.0 L2208.0 1890.0 L2192.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="2600.0" y1="1890.0" x2="2626.0" y2="1890.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2624.0 1880.0 L2640.0 1890.0 L2624.0 1900.0 Z" fill="#1E1B4B"/>
+<line x1="2836.0" y1="1945" x2="2836.0" y2="1980" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2826.0 1978 L2836.0 1994 L2846.0 1978 Z" fill="#1E1B4B"/>
+<line x1="2640.0" y1="2048.0" x2="2614.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2616.0 2038.0 L2600.0 2048.0 L2616.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="2208.0" y1="2048.0" x2="2182.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2184.0 2038.0 L2168.0 2048.0 L2184.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="1776.0" y1="2048.0" x2="1750.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1752.0 2038.0 L1736.0 2048.0 L1752.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="1344.0" y1="2048.0" x2="1318.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1320.0 2038.0 L1304.0 2048.0 L1320.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="912.0" y1="2048.0" x2="886.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M888.0 2038.0 L872.0 2048.0 L888.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="480.0" y1="2048.0" x2="454.0" y2="2048.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M456.0 2038.0 L440.0 2048.0 L456.0 2058.0 Z" fill="#1E1B4B"/>
+<line x1="244.0" y1="2103" x2="244.0" y2="2138" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M234.0 2136 L244.0 2152 L254.0 2136 Z" fill="#1E1B4B"/>
+<line x1="440.0" y1="2206.0" x2="466.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M464.0 2196.0 L480.0 2206.0 L464.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="872.0" y1="2206.0" x2="898.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M896.0 2196.0 L912.0 2206.0 L896.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="1304.0" y1="2206.0" x2="1330.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1328.0 2196.0 L1344.0 2206.0 L1328.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="1736.0" y1="2206.0" x2="1762.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M1760.0 2196.0 L1776.0 2206.0 L1760.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="2168.0" y1="2206.0" x2="2194.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2192.0 2196.0 L2208.0 2206.0 L2192.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="2600.0" y1="2206.0" x2="2626.0" y2="2206.0" stroke="#1E1B4B" stroke-width="3.5"/>
+<path d="M2624.0 2196.0 L2640.0 2206.0 L2624.0 2216.0 Z" fill="#1E1B4B"/>
+<line x1="51.0" y1="2282" x2="3029.0" y2="2282" stroke="#E2E8F0" stroke-width="1.5"/>
+<text x="51.0" y="2312" font-size="17" font-weight="700" fill="#6D28D9">Other buttons</text>
+<text x="181.0" y="2312" font-size="15.5" fill="#475569">· Tabs (index.html:11·12) → analyses.js switches input fields only (no request) · node ①</text>
+<text x="181.0" y="2342" font-size="15.5" fill="#475569">· Preview (index.html:46) → analyses.js:42·46 img.src → analyses/urls.py:12 → stream_views.py:57 camera_stream() → :65 requests.get → :78 StreamingHttpResponse (60 s)</text>
+<text x="181.0" y="2372" font-size="15.5" fill="#475569">· Detail (index.html:81 · recent list) → analyses/urls.py:10 → page_views.py:28 detail() → models.py:28 visible_to() → ⑩ → detail.html</text>
+<text x="181.0" y="2402" font-size="15.5" fill="#475569">· Dashboard (base.html:17) → analyses/urls.py:11 → page_views.py:39 dashboard() (@staff_member_required) → :33 _count_by() ORM aggregate → Chart.js</text>
+<text x="181.0" y="2432" font-size="15.5" fill="#475569">· Sign up · log in · log out (base.html:21 POST) → accounts/urls.py:7·8·9 → views.signup :11 · LoginView · LogoutView → auth_user · django_session</text>
+<text x="181.0" y="2462" font-size="15.5" fill="#475569">· Admin (base.html:18) → config/urls.py:7 admin.site.urls → analyses/admin.py → ⑩</text>
+<rect x="31.0" y="2522" width="3018.0" height="809" rx="10" fill="#fff" stroke="#475569" stroke-width="2.2"/>
+<g transform="translate(49.0,2540) scale(1.2)" fill="none" stroke="#475569" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h7a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h7"/></g>
+<text x="93.0" y="2560" font-size="19" font-weight="700" fill="#1E293B">Endpoint table · method · handler file · function · status codes · nodes passed (numbers = circles above)</text>
+<rect x="43.0" y="2582" width="2994.0" height="33" fill="#E2E8F0"/>
+<text x="59.0" y="2604" font-size="15" font-weight="700" fill="#1E293B">Method</text>
+<text x="209.0" y="2604" font-size="15" font-weight="700" fill="#1E293B">URL</text>
+<text x="509.0" y="2604" font-size="15" font-weight="700" fill="#1E293B">Handler file · function</text>
+<text x="1209.0" y="2604" font-size="15" font-weight="700" fill="#1E293B">Status codes</text>
+<text x="2249.0" y="2604" font-size="15" font-weight="700" fill="#1E293B">Nodes passed</text>
+<rect x="43.0" y="2615" width="2994.0" height="36" fill="#F1F5F9"/>
+<text x="59.0" y="2639" font-size="15.5" font-weight="700" fill="#6D28D9">Pages (django :8000 · HTML · not logged in → 302 /accounts/login/)</text>
+<rect x="59.0" y="2658" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2672.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="2673" font-size="15" font-weight="700" fill="#1E293B">/</text>
+<text x="509.0" y="2673" font-size="15" fill="#475569">analyses/urls.py → page_views.index (@login_required)</text>
+<text x="1209.0" y="2673" font-size="15" fill="#475569">200 analysis page · 302 not logged in</text>
+<text x="2249.0" y="2673" font-size="15" font-weight="700" fill="#1E293B">① → ②</text>
+<line x1="43.0" y1="2684" x2="3037.0" y2="2684" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2684" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="2691" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2705.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="2706" font-size="15" font-weight="700" fill="#1E293B">/analyses/&lt;id&gt;/</text>
+<text x="509.0" y="2706" font-size="15" fill="#475569">page_views.detail (@login_required · visible_to)</text>
+<text x="1209.0" y="2706" font-size="15" fill="#475569">200 · 302 · 404 other user's job · no such id</text>
+<text x="2249.0" y="2706" font-size="15" font-weight="700" fill="#1E293B">⑫ → ⑪ → ⑩</text>
+<line x1="43.0" y1="2717" x2="3037.0" y2="2717" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="2724" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2738.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="2739" font-size="15" font-weight="700" fill="#1E293B">/dashboard/</text>
+<text x="509.0" y="2739" font-size="15" fill="#475569">page_views.dashboard (@staff_member_required)</text>
+<text x="1209.0" y="2739" font-size="15" fill="#475569">200 · 302 not staff → /admin/login/</text>
+<text x="2249.0" y="2739" font-size="15" font-weight="700" fill="#1E293B">admin box → ⑩ (ORM aggregate)</text>
+<line x1="43.0" y1="2750" x2="3037.0" y2="2750" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2750" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="2757" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2771.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="2772" font-size="15" font-weight="700" fill="#1E293B">/cameras/&lt;index&gt;/stream/</text>
+<text x="509.0" y="2772" font-size="15" fill="#475569">stream_views.camera_stream (@login_required · @require_GET)</text>
+<text x="1209.0" y="2772" font-size="15" fill="#475569">200 MJPEG stream · 302 · 404 not in allow list · 405 not GET · 502 camera down · not MJPEG</text>
+<text x="2249.0" y="2772" font-size="15" font-weight="700" fill="#1E293B">① → ② → phone (webcam preview box)</text>
+<line x1="43.0" y1="2783" x2="3037.0" y2="2783" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="2790" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2804.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<rect x="100.05499999999999" y="2790" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="121.42499999999998" y="2804.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="2805" font-size="15" font-weight="700" fill="#1E293B">/accounts/signup/</text>
+<text x="509.0" y="2805" font-size="15" fill="#475569">accounts/urls.py → views.signup (SignUpForm)</text>
+<text x="1209.0" y="2805" font-size="15" fill="#475569">200 signup form · 302 logged in right away → /</text>
+<text x="2249.0" y="2805" font-size="15" font-weight="700" fill="#1E293B">① → ② → ⑩ (auth_user)</text>
+<line x1="43.0" y1="2816" x2="3037.0" y2="2816" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2816" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="2823" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2837.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<rect x="100.05499999999999" y="2823" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="121.42499999999998" y="2837.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="2838" font-size="15" font-weight="700" fill="#1E293B">/accounts/login/</text>
+<text x="509.0" y="2838" font-size="15" fill="#475569">auth_views.LoginView (redirect_authenticated_user=True)</text>
+<text x="1209.0" y="2838" font-size="15" fill="#475569">200 login form · 302 success → / (session cookie)</text>
+<text x="2249.0" y="2838" font-size="15" font-weight="700" fill="#1E293B">① → ② → ⑩ (auth_user)</text>
+<line x1="43.0" y1="2849" x2="3037.0" y2="2849" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="2856" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="80.37" y="2870.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="2871" font-size="15" font-weight="700" fill="#1E293B">/accounts/logout/</text>
+<text x="509.0" y="2871" font-size="15" fill="#475569">auth_views.LogoutView (POST only)</text>
+<text x="1209.0" y="2871" font-size="15" fill="#475569">302 → /accounts/login/ · GET is 405</text>
+<text x="2249.0" y="2871" font-size="15" font-weight="700" fill="#1E293B">① → ②</text>
+<line x1="43.0" y1="2882" x2="3037.0" y2="2882" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2882" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="2889" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2903.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<rect x="100.05499999999999" y="2889" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="121.42499999999998" y="2903.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="2904" font-size="15" font-weight="700" fill="#1E293B">/admin/</text>
+<text x="509.0" y="2904" font-size="15" fill="#475569">config/urls.py → admin.site.urls · analyses/admin.py</text>
+<text x="1209.0" y="2904" font-size="15" fill="#475569">200 · 302 → /admin/login/ (staff only)</text>
+<text x="2249.0" y="2904" font-size="15" font-weight="700" fill="#1E293B">admin box → ⑩</text>
+<line x1="43.0" y1="2915" x2="3037.0" y2="2915" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2915" width="2994.0" height="36" fill="#F1F5F9"/>
+<text x="59.0" y="2939" font-size="15.5" font-weight="700" fill="#6D28D9">API (/api/v1/ · JSON · session login · not logged in → 403 · except health · PUT → 405)</text>
+<rect x="59.0" y="2958" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="2972.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="2973" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/</text>
+<text x="509.0" y="2973" font-size="15" fill="#475569">analyses/api_urls.py router → AnalysisJobViewSet.list()</text>
+<text x="1209.0" y="2973" font-size="15" fill="#475569">200 {count, next, previous, results} 20 per page (staff: all) · 403</text>
+<text x="2249.0" y="2973" font-size="15" font-weight="700" fill="#1E293B">⑪ → ⑩</text>
+<line x1="43.0" y1="2984" x2="3037.0" y2="2984" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="2984" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="2991" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="80.37" y="3005.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="3006" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/</text>
+<text x="509.0" y="3006" font-size="15" fill="#475569">AnalysisJobViewSet.create() · AnalysisJobCreateSerializer</text>
+<text x="1209.0" y="3006" font-size="15" fill="#475569">202 {id, task_id, status, status_url} · 400 invalid input · 403 · 503 enqueue failed</text>
+<text x="2249.0" y="3006" font-size="15" font-weight="700" fill="#1E293B">① → ② → ⑩ INSERT → ③ → ④ …</text>
+<line x1="43.0" y1="3017" x2="3037.0" y2="3017" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="3024" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="3038.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="3039" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/&lt;id&gt;/</text>
+<text x="509.0" y="3039" font-size="15" fill="#475569">retrieve() → AnalysisJobSerializer + predictions</text>
+<text x="1209.0" y="3039" font-size="15" fill="#475569">200 · 403 · 404 other user's job · no such id</text>
+<text x="2249.0" y="3039" font-size="15" font-weight="700" fill="#1E293B">⑫ → ⑪ → ⑩</text>
+<line x1="43.0" y1="3050" x2="3037.0" y2="3050" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="3050" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="3057" width="50.425000000000004" height="20" rx="4" fill="#B45309"/>
+<text x="84.2125" y="3071.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">PATCH</text>
+<text x="209.0" y="3072" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/&lt;id&gt;/</text>
+<text x="509.0" y="3072" font-size="15" fill="#475569">partial_update() → AnalysisJobUpdateSerializer (title · memo only)</text>
+<text x="1209.0" y="3072" font-size="15" fill="#475569">200 · 400 · 403 · 404</text>
+<text x="2249.0" y="3072" font-size="15" font-weight="700" fill="#1E293B">⑪ → ⑩</text>
+<line x1="43.0" y1="3083" x2="3037.0" y2="3083" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="3090" width="58.11" height="20" rx="4" fill="#B91C1C"/>
+<text x="88.055" y="3104.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">DELETE</text>
+<text x="209.0" y="3105" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/&lt;id&gt;/</text>
+<text x="509.0" y="3105" font-size="15" fill="#475569">destroy() · predictions CASCADE · video file removed</text>
+<text x="1209.0" y="3105" font-size="15" fill="#475569">204 · 409 still running (stuck is_stale allowed) · 403 · 404</text>
+<text x="2249.0" y="3105" font-size="15" font-weight="700" fill="#1E293B">⑪ → ⑩ (+ media_data)</text>
+<line x1="43.0" y1="3116" x2="3037.0" y2="3116" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="3116" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="3123" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="3137.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="3138" font-size="15" font-weight="700" fill="#1E293B">/api/v1/analyses/&lt;id&gt;/status/</text>
+<text x="509.0" y="3138" font-size="15" fill="#475569">@action status() → AnalysisJobStatusSerializer (Count only)</text>
+<text x="1209.0" y="3138" font-size="15" fill="#475569">200 {status, is_finished, is_stale, prediction_count, …} · 403 · 404</text>
+<text x="2249.0" y="3138" font-size="15" font-weight="700" fill="#1E293B">⑫ → ⑪ → ⑩ (poll 2 s)</text>
+<line x1="43.0" y1="3149" x2="3037.0" y2="3149" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="59.0" y="3156" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="3170.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="3171" font-size="15" font-weight="700" fill="#1E293B">/api/v1/auth/me/</text>
+<text x="509.0" y="3171" font-size="15" fill="#475569">config/api_urls.py → accounts.views.me → MeSerializer</text>
+<text x="1209.0" y="3171" font-size="15" fill="#475569">200 {id, username, email, is_staff, date_joined} · 403 · 405</text>
+<text x="2249.0" y="3171" font-size="15" font-weight="700" fill="#1E293B">① → ②</text>
+<line x1="43.0" y1="3182" x2="3037.0" y2="3182" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="3182" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="3189" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="3203.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="3204" font-size="15" font-weight="700" fill="#1E293B">/api/v1/health/</text>
+<text x="509.0" y="3204" font-size="15" fill="#475569">config/api_urls.py → config/health.py health() · no login</text>
+<text x="1209.0" y="3204" font-size="15" fill="#475569">200 {status: ok, checks{db, redis}} · 503 DB · Redis down · 405 not GET</text>
+<text x="2249.0" y="3204" font-size="15" font-weight="700" fill="#1E293B">② → ⑩ SELECT 1 · ③ ping</text>
+<line x1="43.0" y1="3215" x2="3037.0" y2="3215" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="3215" width="2994.0" height="36" fill="#F1F5F9"/>
+<text x="59.0" y="3239" font-size="15.5" font-weight="700" fill="#6D28D9">FastAPI (:8001 · published on 127.0.0.1 only · Celery calls http://fastapi:8001 · no DB)</text>
+<rect x="59.0" y="3258" width="35.05499999999999" height="20" rx="4" fill="#15803D"/>
+<text x="76.5275" y="3272.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">GET</text>
+<text x="209.0" y="3273" font-size="15" font-weight="700" fill="#1E293B">/health</text>
+<text x="509.0" y="3273" font-size="15" fill="#475569">ai_service/main.py health()</text>
+<text x="1209.0" y="3273" font-size="15" fill="#475569">200 {status: ok · degraded, model_loaded, classes, n_features, …}</text>
+<text x="2249.0" y="3273" font-size="15" font-weight="700" fill="#1E293B">⑤ (compose healthcheck)</text>
+<line x1="43.0" y1="3284" x2="3037.0" y2="3284" stroke="#E2E8F0" stroke-width="1"/>
+<rect x="43.0" y="3284" width="2994.0" height="33" fill="#F8FAFC"/>
+<rect x="59.0" y="3291" width="42.739999999999995" height="20" rx="4" fill="#1D4ED8"/>
+<text x="80.37" y="3305.5" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">POST</text>
+<text x="209.0" y="3306" font-size="15" font-weight="700" fill="#1E293B">/predict/video</text>
+<text x="509.0" y="3306" font-size="15" fill="#475569">routers/predictions.py predict_video() · multipart file</text>
+<text x="1209.0" y="3306" font-size="15" fill="#475569">200 predictions JSON · 400 extension · empty · 413 over 100MB · 422 unreadable · 503 model not ready</text>
+<text x="2249.0" y="3306" font-size="15" font-weight="700" fill="#1E293B">④ → ⑤ → ⑥ → ⑦ → ⑧ → ⑨</text>
+<line x1="43.0" y1="3317" x2="3037.0" y2="3317" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="201.0" y1="2582" x2="201.0" y2="3317" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="501.0" y1="2582" x2="501.0" y2="3317" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="1201.0" y1="2582" x2="1201.0" y2="3317" stroke="#E2E8F0" stroke-width="1"/>
+<line x1="2241.0" y1="2582" x2="2241.0" y2="3317" stroke="#E2E8F0" stroke-width="1"/>
+<text x="44" y="3387" font-size="16" fill="#475569">Thick arrow = request / data path (above = code call · data format, below = plain words) · blue dashed = Django ORM writes to PostgreSQL · gray line = ORM read · gray dashed box = verification (not runtime) · gray tag = compose.yaml service · port</text>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo2MjQzMmNiNS1mN2M2LTRhNjgtYThhMS1lMGE4MDI5ODJmN2UAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaIRKXKiNaKOacQlGLzOOoxkAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDozZTk3ZWU2YS01Y2U3LTQ0YzQtYjQ4NC1iMWZmOWI5MzMzODVscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNojE2LXtFQGhcBDUbFGdwjpAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggTZGr1D6nOAqH5T+ZXef9zaMcEdjiIe2jjGMH9DAs4HqkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaEr7kiMoLzHZW4OyNE4PGpIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRKAAAAAAAAAAAAAGRoYXNoWCCMEmdEx2QuNVTp7g+hV81EiX7aVG8Jc9vW8nf//xLb+GRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBoAAVeXZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjYyNDMyY2I1LWY3YzYtNGE2OC1hOGExLWUwYTgwMjk4MmY3ZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjgyYjNlMjk5LTIzYWEtNDVmZS1hOTBiLTdiZjA1ZTlmODdjNXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBNkavUPqc4CoflP5ld5/3NoxwR2OIh7aOMYwf0MCzgeqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggXm9jVugSNB3dpTKKh8tsYYcY0y3AuHkEB2etOWsA8vGiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg90iYxVJFCuEfl5VJOQKTd4CpgodrfAxP891ttDtX+fN0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQDH321X6WJnrXinC20Df3MxCyzDbCwPgpBwiGGWhLK8qDO9lAr7oXDXnAbzplco/I/Af0fDpsCqBUP/8pzhZ1CI=</c2pa:manifest></metadata></svg>

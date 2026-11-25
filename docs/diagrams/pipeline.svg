@@ -1,0 +1,613 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="4811" viewBox="0 0 1600 4811" font-family="Noto Sans CJK KR, Malgun Gothic, sans-serif" xmlns:c2pa="http://c2pa.org/manifest">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker><marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#94A3B8"/></marker></defs>
+<rect width="1600" height="4811" fill="#fff"/>
+<text x="800.0" y="50" font-size="27" font-weight="700" fill="#0F172A" text-anchor="middle">Vision Action Platform · 모델 → 추론 → 저장 파이프라인</text>
+<text x="800.0" y="80" font-size="14" fill="#64748B" text-anchor="middle">설정 · 모델 파일 → 서버 시작 시 로드 → 버튼 → FormData → mp4 → (사람, 17, 2) → 38-D → (1, 1140) → RandomForest → 200 JSON → DB 행 → 상태 · 결과 JSON → 화면</text>
+<rect x="20" y="100" width="1560" height="464" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.3"/>
+<text x="40" y="129" font-size="17" font-weight="700" fill="#0F172A">① 설정 · 모델 파일 — 무엇을 읽는가</text>
+<text x="40" y="150" font-size="12.5" fill="#64748B">레포에 있는 설정 + Git 에 올리지 않는 모델 2개 (README '모델 준비' 대로 ai_service/models/ 에 복사) · 각 상자 마지막 줄 = 읽는 곳</text>
+<rect x="20" y="582" width="1560" height="452" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.3"/>
+<text x="40" y="611" font-size="17" font-weight="700" fill="#0F172A">② 서버 시작 — ai_service/main.py lifespan</text>
+<text x="40" y="632" font-size="12.5" fill="#64748B">요청이 오기 전에 설정 · 모델 · Pose 를 한 번 로드하고 규격(1,140 · 30 Step · 6 Class · 컬럼 순서)을 검사</text>
+<rect x="20" y="1052" width="1560" height="1203" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.3"/>
+<text x="40" y="1081" font-size="17" font-weight="700" fill="#0F172A">③ 입력 영상 확보 — backend/ (Django · Celery)</text>
+<text x="40" y="1102" font-size="12.5" fill="#64748B">버튼 1번 = AnalysisJob 1행 · 업로드 파일 또는 IP Webcam 8초 수집 영상을 FastAPI 로 보낼 mp4 로 확보</text>
+<rect x="20" y="2273" width="1560" height="1341" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.3"/>
+<text x="40" y="2302" font-size="17" font-weight="700" fill="#0F172A">④ 추론 — ai_service/ (FastAPI · DB 없음)</text>
+<text x="40" y="2323" font-size="12.5" fill="#64748B">mp4 → YOLO Pose · ByteTrack → (사람, 17, 2) → 38-D → 5초 Window · (30, 38) → (1, 1140) → RandomForest → Track 별 action_label</text>
+<rect x="20" y="3632" width="1560" height="819" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.3"/>
+<text x="40" y="3661" font-size="17" font-weight="700" fill="#0F172A">⑤ 저장 · 표시 — Celery 가 Django ORM 으로 저장, 화면은 DB 를 조회</text>
+<text x="40" y="3682" font-size="12.5" fill="#64748B">FastAPI 는 DB 를 모름 · 결과는 analyses/models.py 의 AnalysisJob 1 ─ N PersonPrediction</text>
+<rect x="20" y="4469" width="1560" height="212" rx="12" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="9 6"/>
+<text x="40" y="4498" font-size="17" font-weight="700" fill="#0F172A">⑥ 검증 — 실행 순서가 아님 · docker compose exec django python manage.py test → 51 OK</text>
+<text x="40" y="4519" font-size="12.5" fill="#64748B">Celery eager 모드 · predict_video 는 mock 으로 대신 → Redis · FastAPI · 모델 없이 돌아감 · 화살표로 잇지 않음 (코드를 바꾸지 않고 확인만)</text>
+<path d="M800.0 335 V378" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="775.0" y="340" width="50.0" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="353.5" font-size="12" fill="#64748B" text-anchor="middle">마운트</text>
+<path d="M1130 431.5 H1017" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<path d="M255.0 354 V646" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="221.96" y="359" width="66.08" height="17" rx="3" fill="#fff"/>
+<text x="255.0" y="372.5" font-size="12" fill="#64748B" text-anchor="middle">설정 읽기</text>
+<path d="M800.0 483 V646" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="740.92" y="488" width="118.16" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="501.5" font-size="12" fill="#64748B" text-anchor="middle">joblib · json 로드</text>
+<path d="M975 483 V554 H1425.0 V646" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1368.68" y="614" width="112.64000000000001" height="17" rx="3" fill="#fff"/>
+<text x="1425.0" y="627.5" font-size="12" fill="#64748B" text-anchor="middle">yolo11n-pose.pt</text>
+<path d="M800.0 846 V886" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="755.98" y="851" width="88.03999999999999" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="864.5" font-size="12" fill="#64748B" text-anchor="middle">ActionModel</text>
+<path d="M255.0 751 V939.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="209.96" y="897.5" width="90.07999999999998" height="17" rx="3" fill="#fff"/>
+<text x="255.0" y="911.0" font-size="12" fill="#64748B" text-anchor="middle">config (dict)</text>
+<path d="M1425.0 808 V886" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<path d="M1160 808 V828 H955 V886" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1097.08" y="812" width="41.839999999999996" height="17" rx="3" fill="#fff"/>
+<text x="1118" y="825.5" font-size="12" fill="#64748B" text-anchor="middle">pose</text>
+<path d="M470 1188.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="508.5" y="1167.5" width="38.0" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="1181.0" font-size="12" fill="#64748B" text-anchor="middle">세션</text>
+<path d="M800.0 1259 V1299" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="726.94" y="1264" width="146.11999999999998" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="1277.5" font-size="12" fill="#64748B" text-anchor="middle">&lt;script&gt; (WhiteNoise)</text>
+<path d="M1015 1371.5 H1128" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1033.34" y="1350.5" width="78.32" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="1364.0" font-size="12" fill="#64748B" text-anchor="middle">WEBCAM 탭</text>
+<path d="M800.0 1442 V1501" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="731.44" y="1447" width="137.12" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="1460.5" font-size="12" fill="#64748B" text-anchor="middle">multipart FormData</text>
+<path d="M470 1583.0 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="492.9" y="1562.0" width="69.19999999999999" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="1575.5" font-size="12" fill="#64748B" text-anchor="middle">is_valid()</text>
+<path d="M255.0 1461 V1501" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="215.0" y="1466" width="80.0" height="17" rx="3" fill="#fff"/>
+<text x="255.0" y="1479.5" font-size="12" fill="#64748B" text-anchor="middle">create() 로</text>
+<path d="M1015 1564.0 H1128" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1053.5" y="1543.0" width="38.0" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="1556.5" font-size="12" fill="#64748B" text-anchor="middle">응답</text>
+<path d="M1015 1687 H1345.0 V1741" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1203.48" y="1665" width="223.03999999999996" height="17" rx="3" fill="#fff"/>
+<text x="1315.0" y="1678.5" font-size="12" fill="#64748B" text-anchor="middle">Redis 메시지 (run_analysis, job_id)</text>
+<path d="M1130 1804.0 H1017" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1020.92" y="1783.0" width="103.16" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="1796.5" font-size="12" fill="#64748B" text-anchor="middle">Worker 가 꺼냄</text>
+<path d="M800.0 1903 V1943" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="774.52" y="1908" width="50.959999999999994" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="1921.5" font-size="12" fill="#64748B" text-anchor="middle">job 행</text>
+<path d="M470 2006.0 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="482.28" y="1985.0" width="90.44" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="1998.5" font-size="12" fill="#64748B" text-anchor="middle">WEBCAM mp4</text>
+<path d="M1130 1987.0 H1017" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1044.62" y="1966.0" width="55.76" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="1979.5" font-size="12" fill="#64748B" text-anchor="middle">UPLOAD</text>
+<path d="M800.0 2067 V2107" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="746.86" y="2072" width="106.28" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2085.5" font-size="12" fill="#64748B" text-anchor="middle">mp4 경로 (Path)</text>
+<path d="M800.0 2231 V2337" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="714.88" y="2236" width="170.24" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2249.5" font-size="12" fill="#64748B" text-anchor="middle">multipart mp4 · X-Job-ID</text>
+<path d="M1015 2390.5 H1128" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1045.46" y="2369.5" width="54.08" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="2383.0" font-size="12" fill="#64748B" text-anchor="middle">실패 시</text>
+<path d="M800.0 2461 V2501" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="752.92" y="2466" width="94.16" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2479.5" font-size="12" fill="#64748B" text-anchor="middle">임시 파일 경로</text>
+<path d="M800.0 2625 V2665" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="754.96" y="2630" width="90.08" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2643.5" font-size="12" fill="#64748B" text-anchor="middle">프레임별 결과</text>
+<path d="M800.0 2770 V2810" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="760.36" y="2775" width="79.28" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2788.5" font-size="12" fill="#64748B" text-anchor="middle">관절 (17, 2)</text>
+<path d="M470 2863.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="508.5" y="2842.5" width="38.0" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="2856.0" font-size="12" fill="#64748B" text-anchor="middle">함수</text>
+<path d="M800.0 2934 V2974" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="754.12" y="2939" width="91.75999999999999" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="2952.5" font-size="12" fill="#64748B" text-anchor="middle">38-D float32</text>
+<path d="M800.0 3079 V3119" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="754.96" y="3084" width="90.08" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="3097.5" font-size="12" fill="#64748B" text-anchor="middle">사람별 시계열</text>
+<path d="M470 3172.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="508.5" y="3151.5" width="38.0" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="3165.0" font-size="12" fill="#64748B" text-anchor="middle">함수</text>
+<path d="M1015 3172.5 H1128" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1047.5" y="3151.5" width="50.0" height="17" rx="3" fill="#fff"/>
+<text x="1072.5" y="3165.0" font-size="12" fill="#64748B" text-anchor="middle">짧으면</text>
+<path d="M800.0 3243 V3283" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="730.78" y="3248" width="138.44" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="3261.5" font-size="12" fill="#64748B" text-anchor="middle">(1, 1140) × Window 수</text>
+<path d="M595 991 V1013 H10 V3346.0 H583" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arg)"/>
+<rect x="50.58000000000001" y="3324.0" width="158.83999999999997" height="17" rx="3" fill="#fff"/>
+<text x="130" y="3337.5" font-size="12" fill="#64748B" text-anchor="middle">app.state.action_model</text>
+<path d="M800.0 3407 V3447" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="731.44" y="3412" width="137.12" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="3425.5" font-size="12" fill="#64748B" text-anchor="middle">Track 별 Label · 확률</text>
+<path d="M800.0 3590 V3696" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="705.04" y="3595" width="189.92000000000002" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="3608.5" font-size="12" fill="#64748B" text-anchor="middle">200 JSON → dict (services.py)</text>
+<path d="M1560 2390.5 H1582 V3759.0 H1562" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arg)"/>
+<path d="M800.0 3839 V3879" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="734.02" y="3844" width="131.96" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="3857.5" font-size="12" fill="#64748B" text-anchor="middle">ORM bulk_create 행</text>
+<path d="M470 3951.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="508.5" y="3930.5" width="38.0" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="3944.0" font-size="12" fill="#64748B" text-anchor="middle">모델</text>
+<path d="M1345.0 3820 V3951.5 H1017" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1303.02" y="3929.5" width="83.96000000000001" height="17" rx="3" fill="#fff"/>
+<text x="1345.0" y="3943.0" font-size="12" fill="#64748B" text-anchor="middle">ORM UPDATE</text>
+<path d="M800.0 4022 V4062" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="766.9" y="4027" width="66.19999999999999" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="4040.5" font-size="12" fill="#64748B" text-anchor="middle">ORM 조회</text>
+<path d="M470 4134.5 H583" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="502.5" y="4113.5" width="50.0" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="4127.0" font-size="12" fill="#64748B" text-anchor="middle">직렬화</text>
+<path d="M1015 4010 H1345.0 V4062" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="1241.82" y="3988" width="146.35999999999999" height="17" rx="3" fill="#fff"/>
+<text x="1315.0" y="4001.5" font-size="12" fill="#64748B" text-anchor="middle">ORM 집계 (Count · Avg)</text>
+<path d="M800.0 4205 V4264" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="678.76" y="4210" width="242.47999999999996" height="17" rx="3" fill="#fff"/>
+<text x="800.0" y="4223.5" font-size="12" fill="#64748B" text-anchor="middle">상태 JSON · 결과 JSON (2초 · 최대 600초)</text>
+<path d="M609 4022 V4053 H24 V4327.0 H38" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="96.9" y="4041" width="66.19999999999999" height="17" rx="3" fill="#fff"/>
+<text x="130" y="4054.5" font-size="12" fill="#64748B" text-anchor="middle">ORM 조회</text>
+<path d="M585 4327.0 H472" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#ar)"/>
+<rect x="494.46" y="4306.0" width="66.08" height="17" rx="3" fill="#fff"/>
+<text x="527.5" y="4319.5" font-size="12" fill="#64748B" text-anchor="middle">상세 링크</text>
+<rect x="40" y="156" width="430" height="198" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="40" y="156" width="6" height="198" rx="2" fill="#3B82F6"/>
+<text x="58" y="182" font-size="15.5" font-weight="700" fill="#0F172A">ai_service/project.json</text>
+<rect x="54" y="192" width="220.44559999999998" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="61" y="206" font-size="12" font-weight="700" fill="#0F172A">역할 · Pose · Window · 추적 설정값</text>
+<text x="58" y="225" font-size="13" fill="#475569">pose_model yolo11n-pose.pt · image_size 640</text>
+<text x="58" y="244" font-size="13" fill="#475569">person_confidence 0.25 · keypoint_confidence 0.5</text>
+<text x="58" y="263" font-size="13" fill="#475569">day06_baseline: sequence_steps 30 · min_valid_frames 10</text>
+<text x="58" y="282" font-size="13" fill="#475569">day07_realtime: window 5.0초 · 간격 0.25초 · 0.55</text>
+<text x="58" y="301" font-size="13" fill="#475569">  fill 0.8 · valid 0.6 · min 10 · 안정화 5표 중 3</text>
+<text x="58" y="320" font-size="13" fill="#475569">day08_multi_person: bytetrack.yaml · lost 2.0초</text>
+<text x="58" y="339" font-size="13" fill="#475569">읽는 곳 → model_loader.load_project_config()</text>
+<rect x="585" y="156" width="430" height="179" rx="8" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="2"/>
+<rect x="585" y="156" width="6" height="179" rx="2" fill="#8B5CF6"/>
+<text x="603" y="182" font-size="15.5" font-weight="700" fill="#0F172A">ai_service/models/</text>
+<rect x="599" y="192" width="205.3088" height="19" rx="3" fill="#8B5CF6" fill-opacity="0.13"/>
+<text x="606" y="206" font-size="12" font-weight="700" fill="#0F172A">역할 · 학습된 모델 · Pose 가중치</text>
+<text x="603" y="225" font-size="13" fill="#475569">rf_action_baseline.joblib   RandomForest (Git 제외)</text>
+<text x="603" y="244" font-size="13" fill="#475569">rf_feature_columns.json   1,140 컬럼 이름 · 순서</text>
+<text x="603" y="263" font-size="13" fill="#475569">      t00_nose_x … t29_right_knee_angle</text>
+<text x="603" y="282" font-size="13" fill="#475569">rf_training_info.json   steps 30 · 6 class · 300 trees</text>
+<text x="603" y="301" font-size="13" fill="#475569">yolo11n-pose.pt   YOLO Pose 가중치 (Git 제외)</text>
+<text x="603" y="320" font-size="13" fill="#475569">읽는 곳 → load_action_model() · PosePipeline()</text>
+<rect x="903" y="146" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="156" r="3.8" fill="#DC2626"/>
+<text x="925" y="160.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="1130" y="156" width="430" height="198" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="1130" y="156" width="6" height="198" rx="2" fill="#3B82F6"/>
+<text x="1148" y="182" font-size="15.5" font-weight="700" fill="#0F172A">.env  (← .env.example 복사)</text>
+<rect x="1144" y="192" width="222.608" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="1151" y="206" font-size="12" font-weight="700" fill="#0F172A">역할 · 서비스 주소 · 파일명 · 제한값</text>
+<text x="1148" y="225" font-size="13" fill="#475569">MODEL_DIR=/app/models · POSE_DEVICE=cpu</text>
+<text x="1148" y="244" font-size="13" fill="#475569">RF_MODEL_FILE · RF_COLUMNS_FILE · RF_INFO_FILE</text>
+<text x="1148" y="263" font-size="13" fill="#475569">CELERY_BROKER_URL=redis://redis:6379/0</text>
+<text x="1148" y="282" font-size="13" fill="#475569">AI_SERVICE_URL=http://fastapi:8001 · TIMEOUT 300</text>
+<text x="1148" y="301" font-size="13" fill="#475569">MAX_UPLOAD_MB=100 · LOW_CONFIDENCE_THRESHOLD=0.55</text>
+<text x="1148" y="320" font-size="13" fill="#475569">IP_WEBCAM_ALLOWED_URLS · CAMERA_CAPTURE_SECONDS=8</text>
+<text x="1148" y="339" font-size="13" fill="#475569">읽는 곳 → config/settings.py · model_loader</text>
+<rect x="1130" y="380" width="430" height="160" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="1130" y="380" width="6" height="160" rx="2" fill="#3B82F6"/>
+<text x="1148" y="406" font-size="15.5" font-weight="700" fill="#0F172A">compose.yaml</text>
+<rect x="1144" y="416" width="191.8256" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="1151" y="430" font-size="12" font-weight="700" fill="#0F172A">역할 · 5개 서비스 · 포트 · 볼륨</text>
+<text x="1148" y="449" font-size="13" fill="#475569">postgres · redis · fastapi · django · celery (5개)</text>
+<text x="1148" y="468" font-size="13" fill="#475569">fastapi 127.0.0.1:8001 · django 8000:8000 (나머지 내부)</text>
+<text x="1148" y="487" font-size="13" fill="#475569">볼륨 postgres_data · media_data · ./ai_service/models (ro)</text>
+<text x="1148" y="506" font-size="13" fill="#475569">healthcheck → depends_on service_healthy 순서</text>
+<text x="1148" y="525" font-size="13" fill="#475569">env_file: .env · TZ=Asia/Seoul</text>
+<rect x="585" y="380" width="430" height="103" rx="8" fill="#ECFEFF" stroke="#06B6D4" stroke-width="2"/>
+<rect x="585" y="380" width="6" height="103" rx="2" fill="#06B6D4"/>
+<text x="603" y="406" font-size="15.5" font-weight="700" fill="#0F172A">/app/models  (fastapi 컨테이너 안)</text>
+<rect x="599" y="416" width="150.10399999999998" height="19" rx="3" fill="#06B6D4" fill-opacity="0.13"/>
+<text x="606" y="430" font-size="12" font-weight="700" fill="#0F172A">역할 · 읽기 전용 마운트</text>
+<text x="603" y="449" font-size="13" fill="#475569">compose: ./ai_service/models:/app/models:ro</text>
+<text x="603" y="468" font-size="13" fill="#475569">이미지에 굽지 않음 → 모델만 바꿔 끼울 수 있음</text>
+<rect x="40" y="648" width="430" height="103" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="648" width="6" height="103" rx="2" fill="#334155"/>
+<text x="58" y="674" font-size="15.5" font-weight="700" fill="#0F172A">load_project_config()</text>
+<rect x="54" y="684" width="137.38400000000001" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="698" font-size="12" font-weight="700" fill="#0F172A">역할 · 설정 파일 읽기</text>
+<text x="58" y="717" font-size="13" fill="#475569">services/model_loader.py</text>
+<text x="58" y="736" font-size="13" fill="#475569">project.json → dict (없으면 ModelNotReady)</text>
+<rect x="585" y="648" width="430" height="198" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="648" width="6" height="198" rx="2" fill="#334155"/>
+<text x="603" y="674" font-size="15.5" font-weight="700" fill="#0F172A">load_action_model()</text>
+<rect x="599" y="684" width="178.85119999999998" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="698" font-size="12" font-weight="700" fill="#0F172A">역할 · 모델 로드 + 규격 확인</text>
+<text x="603" y="717" font-size="13" fill="#475569">services/model_loader.py · 파일명 = .env RF_*_FILE</text>
+<text x="603" y="736" font-size="13" fill="#475569">joblib.load · json.loads × 2</text>
+<text x="603" y="755" font-size="13" fill="#475569">검사 ① n_features_in_ = 컬럼 수 = 1,140</text>
+<text x="603" y="774" font-size="13" fill="#475569">검사 ② 1,140 % sequence_steps(30) = 0</text>
+<text x="603" y="793" font-size="13" fill="#475569">검사 ③ 컬럼 = sequence_feature_names(30)</text>
+<text x="603" y="812" font-size="13" fill="#475569">검사 ④ model.classes_ = 6개 Action</text>
+<text x="603" y="831" font-size="13" fill="#475569">→ ActionModel(model, classes, 30, 38, 1140)</text>
+<rect x="903" y="638" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="648" r="3.8" fill="#DC2626"/>
+<text x="925" y="652.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="1130" y="648" width="430" height="160" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="1130" y="648" width="6" height="160" rx="2" fill="#334155"/>
+<text x="1148" y="674" font-size="15.5" font-weight="700" fill="#0F172A">PosePipeline(config)</text>
+<rect x="1144" y="684" width="145.5248" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="1151" y="698" font-size="12" font-weight="700" fill="#0F172A">역할 · YOLO Pose 준비</text>
+<text x="1148" y="717" font-size="13" fill="#475569">services/pose_pipeline.py</text>
+<text x="1148" y="736" font-size="13" fill="#475569">YOLO(/app/models/yolo11n-pose.pt)</text>
+<text x="1148" y="755" font-size="13" fill="#475569">imgsz 640 · conf 0.25 · device cpu</text>
+<text x="1148" y="774" font-size="13" fill="#475569">tracker bytetrack.yaml · MAX_VIDEO_SECONDS 60</text>
+<text x="1148" y="793" font-size="13" fill="#475569">threading.Lock: 영상 1건씩 순서대로</text>
+<rect x="585" y="888" width="430" height="103" rx="8" fill="#F0FDF4" stroke="#22C55E" stroke-width="2"/>
+<rect x="585" y="888" width="6" height="103" rx="2" fill="#22C55E"/>
+<text x="603" y="914" font-size="15.5" font-weight="700" fill="#0F172A">app.state  (main.py lifespan · 시작 시 1번)</text>
+<rect x="599" y="924" width="188.26399999999998" height="19" rx="3" fill="#22C55E" fill-opacity="0.13"/>
+<text x="606" y="938" font-size="12" font-weight="700" fill="#0F172A">역할 · 요청마다 재사용할 객체</text>
+<text x="603" y="957" font-size="13" fill="#475569">config · action_model (ActionModel) · pose (PosePipeline)</text>
+<text x="603" y="976" font-size="13" fill="#475569">실패해도 서버는 뜸 → load_error 에 원인 저장</text>
+<rect x="1130" y="888" width="430" height="122" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1130" y="888" width="6" height="122" rx="2" fill="#F59E0B"/>
+<text x="1148" y="914" font-size="15.5" font-weight="700" fill="#0F172A">GET /health  (fastapi)</text>
+<rect x="1144" y="924" width="146.0336" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="1151" y="938" font-size="12" font-weight="700" fill="#0F172A">역할 · 서버 · 모델 상태</text>
+<text x="1148" y="957" font-size="13" fill="#475569">{status, model_loaded, classes, n_features,</text>
+<text x="1148" y="976" font-size="13" fill="#475569"> sequence_steps, feature_dim, pose_model, error}</text>
+<text x="1148" y="995" font-size="13" fill="#475569">실패 → degraded · /predict/video 503</text>
+<rect x="40" y="1118" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="1118" width="6" height="141" rx="2" fill="#334155"/>
+<text x="58" y="1144" font-size="15.5" font-weight="700" fill="#0F172A">accounts/  · 로그인 화면</text>
+<rect x="54" y="1154" width="154.4288" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="1168" font-size="12" font-weight="700" fill="#0F172A">역할 · 로그인 · 회원가입</text>
+<text x="58" y="1187" font-size="13" fill="#475569">/accounts/login/ → LoginView · /signup/ → views.signup</text>
+<text x="58" y="1206" font-size="13" fill="#475569">/accounts/logout/ → LogoutView (POST 만)</text>
+<text x="58" y="1225" font-size="13" fill="#475569">성공 → 세션 쿠키 · LOGIN_REDIRECT_URL = 분석 화면</text>
+<text x="58" y="1244" font-size="13" fill="#475569">GET /api/v1/auth/me/ → MeSerializer</text>
+<rect x="585" y="1118" width="430" height="141" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="585" y="1118" width="6" height="141" rx="2" fill="#3B82F6"/>
+<text x="603" y="1144" font-size="15.5" font-weight="700" fill="#0F172A">page_views.index → index.html</text>
+<rect x="599" y="1154" width="144.8888" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="606" y="1168" font-size="12" font-weight="700" fill="#0F172A">역할 · 분석 화면 HTML</text>
+<text x="603" y="1187" font-size="13" fill="#475569">GET / → config/urls.py → analyses/urls.py</text>
+<text x="603" y="1206" font-size="13" fill="#475569">@login_required (미로그인 → /accounts/login/)</text>
+<text x="603" y="1225" font-size="13" fill="#475569">data-list-url · data-status-url = {% url 'api:...' %}</text>
+<text x="603" y="1244" font-size="13" fill="#475569">허용 카메라 번호 · 확장자 · 100MB · 600초 전달</text>
+<rect x="40" y="1301" width="430" height="160" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="40" y="1301" width="6" height="160" rx="2" fill="#3B82F6"/>
+<text x="58" y="1327" font-size="15.5" font-weight="700" fill="#0F172A">주소 따라가기 (API)</text>
+<rect x="54" y="1337" width="145.7792" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="61" y="1351" font-size="12" font-weight="700" fill="#0F172A">역할 · URL → 함수 연결</text>
+<text x="58" y="1370" font-size="13" fill="#475569">config/urls.py path("api/v1/", namespace="api")</text>
+<text x="58" y="1389" font-size="13" fill="#475569">→ config/api_urls.py (app_name="api")</text>
+<text x="58" y="1408" font-size="13" fill="#475569">→ analyses/api_urls.py DefaultRouter</text>
+<text x="58" y="1427" font-size="13" fill="#475569">   router.register("analyses", AnalysisJobViewSet)</text>
+<text x="58" y="1446" font-size="13" fill="#475569">→ POST analyses/ = AnalysisJobViewSet.create()</text>
+<rect x="585" y="1301" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="1301" width="6" height="141" rx="2" fill="#334155"/>
+<text x="603" y="1327" font-size="15.5" font-weight="700" fill="#0F172A">static/js/analyses.js</text>
+<rect x="599" y="1337" width="179.8688" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="1351" font-size="12" font-weight="700" fill="#0F172A">역할 · 요청 보내고 상태 폴링</text>
+<text x="603" y="1370" font-size="13" fill="#475569">탭 UPLOAD / WEBCAM → input_type</text>
+<text x="603" y="1389" font-size="13" fill="#475569">submit → fetch POST /api/v1/analyses/</text>
+<text x="603" y="1408" font-size="13" fill="#475569">body FormData · headers X-CSRFToken</text>
+<text x="603" y="1427" font-size="13" fill="#475569">res.status !== 202 → 오류 문구 표시</text>
+<rect x="1130" y="1301" width="430" height="141" rx="8" fill="#ECFEFF" stroke="#06B6D4" stroke-width="2"/>
+<rect x="1130" y="1301" width="6" height="141" rx="2" fill="#06B6D4"/>
+<text x="1148" y="1327" font-size="15.5" font-weight="700" fill="#0F172A">stream_views.camera_stream</text>
+<rect x="1144" y="1337" width="175.54399999999998" height="19" rx="3" fill="#06B6D4" fill-opacity="0.13"/>
+<text x="1151" y="1351" font-size="12" font-weight="700" fill="#0F172A">역할 · 웹캠 실시간 미리보기</text>
+<text x="1148" y="1370" font-size="13" fill="#475569">GET /cameras/&lt;index&gt;/stream/ · @login_required</text>
+<text x="1148" y="1389" font-size="13" fill="#475569">허용 목록 밖 → 404 · 카메라 실패 → 502</text>
+<text x="1148" y="1408" font-size="13" fill="#475569">MJPEG 바이트 그대로 중계 · 최대 60초</text>
+<text x="1148" y="1427" font-size="13" fill="#475569">카메라 IP 는 화면에 안 보임 · 분석과 별도</text>
+<rect x="1493.5788" y="1311" width="56.421200000000006" height="20" rx="10" fill="#F1F5F9" stroke="#CBD5E1"/>
+<text x="1521.7894" y="1325.5" font-size="11.5" font-weight="700" fill="#475569" text-anchor="middle">django</text>
+<rect x="40" y="1503" width="430" height="160" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="1503" width="6" height="160" rx="2" fill="#334155"/>
+<text x="58" y="1529" font-size="15.5" font-weight="700" fill="#0F172A">serializers.AnalysisJobCreateSerializer</text>
+<rect x="54" y="1539" width="120.33919999999999" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="1553" font-size="12" font-weight="700" fill="#0F172A">역할 · 입력값 검사</text>
+<text x="58" y="1572" font-size="13" fill="#475569">validate_video_file: mp4 · mov · avi · mkv · 100MB</text>
+<text x="58" y="1591" font-size="13" fill="#475569">UPLOAD → video_file 필수</text>
+<text x="58" y="1610" font-size="13" fill="#475569">WEBCAM → camera_index &lt; 허용 목록 길이</text>
+<text x="58" y="1629" font-size="13" fill="#475569">  capture_seconds = CAMERA_CAPTURE_SECONDS(8)</text>
+<text x="58" y="1648" font-size="13" fill="#475569">틀리면 400 {필드: 메시지}</text>
+<rect x="585" y="1503" width="430" height="198" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="1503" width="6" height="198" rx="2" fill="#334155"/>
+<text x="603" y="1529" font-size="15.5" font-weight="700" fill="#0F172A">views.AnalysisJobViewSet.create()</text>
+<rect x="599" y="1539" width="231.2576" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="1553" font-size="12" font-weight="700" fill="#0F172A">역할 · 요청 접수 · 작업 저장 · 큐 등록</text>
+<text x="603" y="1572" font-size="13" fill="#475569">① SessionAuthentication · IsAuthenticated</text>
+<text x="603" y="1591" font-size="13" fill="#475569">② serializer.is_valid(raise_exception=True)</text>
+<text x="603" y="1610" font-size="13" fill="#475569">③ task_id = str(uuid.uuid4())</text>
+<text x="603" y="1629" font-size="13" fill="#475569">   save(user, celery_task_id=task_id)</text>
+<text x="603" y="1648" font-size="13" fill="#475569">   → AnalysisJob 1행 PENDING · 영상 → media/videos/</text>
+<text x="603" y="1667" font-size="13" fill="#475569">④ transaction.on_commit(enqueue_analysis)</text>
+<text x="603" y="1686" font-size="13" fill="#475569">   → run_analysis.apply_async(args=[pk], task_id)</text>
+<rect x="1130" y="1503" width="430" height="122" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1130" y="1503" width="6" height="122" rx="2" fill="#F59E0B"/>
+<text x="1148" y="1529" font-size="15.5" font-weight="700" fill="#0F172A">202 JSON → analyses.js</text>
+<rect x="1144" y="1539" width="156.46399999999997" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="1151" y="1553" font-size="12" font-weight="700" fill="#0F172A">역할 · 작업 ID 바로 반환</text>
+<text x="1148" y="1572" font-size="13" fill="#475569">{id, task_id, status: "PENDING",</text>
+<text x="1148" y="1591" font-size="13" fill="#475569"> status_url: reverse("api:analysis-status")}</text>
+<text x="1148" y="1610" font-size="13" fill="#475569">Redis 등록 실패 → FAILURE 저장 + 503 {detail}</text>
+<rect x="40" y="1743" width="430" height="141" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="40" y="1743" width="6" height="141" rx="2" fill="#F59E0B"/>
+<text x="58" y="1769" font-size="15.5" font-weight="700" fill="#0F172A">GET /api/v1/health/  (django)</text>
+<rect x="54" y="1779" width="173.5088" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="61" y="1793" font-size="12" font-weight="700" fill="#0F172A">역할 · DB · Redis 연결 확인</text>
+<text x="58" y="1812" font-size="13" fill="#475569">config/health.py · 로그인 불필요 · GET 만</text>
+<text x="58" y="1831" font-size="13" fill="#475569">_check_db SELECT 1 · _check_redis ping (2초)</text>
+<text x="58" y="1850" font-size="13" fill="#475569">200 {status, checks} · 하나라도 실패 503</text>
+<text x="58" y="1869" font-size="13" fill="#475569">compose django healthcheck 가 부름</text>
+<rect x="585" y="1743" width="430" height="160" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="1743" width="6" height="160" rx="2" fill="#334155"/>
+<text x="603" y="1769" font-size="15.5" font-weight="700" fill="#0F172A">tasks.run_analysis(job_id)  · celery</text>
+<rect x="599" y="1779" width="218.0288" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="1793" font-size="12" font-weight="700" fill="#0F172A">역할 · 큐에서 꺼내 백그라운드 실행</text>
+<text x="603" y="1812" font-size="13" fill="#475569">config/celery.py autodiscover_tasks → @shared_task</text>
+<text x="603" y="1831" font-size="13" fill="#475569">① get(pk=job_id) → STARTED · started_at 저장</text>
+<text x="603" y="1850" font-size="13" fill="#475569">② _prepare_video → ③ predict_video → ④ save_result</text>
+<text x="603" y="1869" font-size="13" fill="#475569">오류는 어디서든 _fail() · 제한 600초</text>
+<text x="603" y="1888" font-size="13" fill="#475569">로그 job#N: 대기 · 영상 · 추론 · 저장 초 (+0900)</text>
+<rect x="1130" y="1743" width="430" height="122" rx="8" fill="#F0FDF4" stroke="#22C55E" stroke-width="2"/>
+<rect x="1130" y="1743" width="6" height="122" rx="2" fill="#22C55E"/>
+<text x="1148" y="1769" font-size="15.5" font-weight="700" fill="#0F172A">Redis (redis:6379/0) · Celery 브로커</text>
+<rect x="1144" y="1779" width="120.33919999999999" height="19" rx="3" fill="#22C55E" fill-opacity="0.13"/>
+<text x="1151" y="1793" font-size="12" font-weight="700" fill="#0F172A">역할 · 작업 대기열</text>
+<text x="1148" y="1812" font-size="13" fill="#475569">메시지 = run_analysis · args [job_id] · task_id</text>
+<text x="1148" y="1831" font-size="13" fill="#475569">결과 백엔드 /1 = {job_id, status} 만</text>
+<text x="1148" y="1850" font-size="13" fill="#475569">업무 데이터는 PostgreSQL · 포트 비공개</text>
+<rect x="1503.5746" y="1753" width="46.425399999999996" height="20" rx="10" fill="#F1F5F9" stroke="#CBD5E1"/>
+<text x="1526.7873" y="1767.5" font-size="11.5" font-weight="700" fill="#475569" text-anchor="middle">redis</text>
+<rect x="40" y="1945" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="1945" width="6" height="122" rx="2" fill="#334155"/>
+<text x="58" y="1971" font-size="15.5" font-weight="700" fill="#0F172A">camera_capture.capture_clip()</text>
+<rect x="54" y="1981" width="162.82399999999998" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="1995" font-size="12" font-weight="700" fill="#0F172A">역할 · 휴대폰 카메라 수집</text>
+<text x="58" y="2014" font-size="13" fill="#475569">get_allowed_camera_url(camera_index)</text>
+<text x="58" y="2033" font-size="13" fill="#475569">cv2.VideoCapture · 8초 · 최대 30fps → mp4v</text>
+<text x="58" y="2052" font-size="13" fill="#475569">실제 fps 로 다시 기록 · 실패 → CameraError</text>
+<rect x="585" y="1945" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="1945" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="1971" font-size="15.5" font-weight="700" fill="#0F172A">tasks._prepare_video(job)</text>
+<rect x="599" y="1981" width="150.2312" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="1995" font-size="12" font-weight="700" fill="#0F172A">역할 · 분석할 mp4 확보</text>
+<text x="603" y="2014" font-size="13" fill="#475569">UPLOAD → media/videos/YYYY/MM/DD/*.mp4</text>
+<text x="603" y="2033" font-size="13" fill="#475569">WEBCAM → media/captures/YYYY/MM/DD/job_{id}.mp4</text>
+<text x="603" y="2052" font-size="13" fill="#475569">  경로를 job.video_file 에 저장</text>
+<rect x="1130" y="1945" width="430" height="84" rx="8" fill="#ECFEFF" stroke="#06B6D4" stroke-width="2"/>
+<rect x="1130" y="1945" width="6" height="84" rx="2" fill="#06B6D4"/>
+<text x="1148" y="1971" font-size="15.5" font-weight="700" fill="#0F172A">media_data 볼륨 (/app/media)</text>
+<rect x="1144" y="1981" width="137.38400000000001" height="19" rx="3" fill="#06B6D4" fill-opacity="0.13"/>
+<text x="1151" y="1995" font-size="12" font-weight="700" fill="#0F172A">역할 · 영상 공유 폴더</text>
+<text x="1148" y="2014" font-size="13" fill="#475569">django 가 업로드 저장 ↔ celery 가 읽음</text>
+<rect x="585" y="2109" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="2109" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="2135" font-size="15.5" font-weight="700" fill="#0F172A">services.predict_video(path, job_id)</text>
+<rect x="599" y="2145" width="133.82240000000002" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="2159" font-size="12" font-weight="700" fill="#0F172A">역할 · FastAPI 호출</text>
+<text x="603" y="2178" font-size="13" fill="#475569">requests.post(AI_SERVICE_URL + /predict/video)</text>
+<text x="603" y="2197" font-size="13" fill="#475569">files={'file': (name, f, 'video/mp4')} · X-Job-ID</text>
+<text x="603" y="2216" font-size="13" fill="#475569">timeout (5, 300) · 400 이상 → AIServiceError</text>
+<rect x="585" y="2339" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="2339" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="2365" font-size="15.5" font-weight="700" fill="#0F172A">routers/predictions.py · predict_video()</text>
+<rect x="599" y="2375" width="134.0768" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="2389" font-size="12" font-weight="700" fill="#0F172A">역할 · 추론 API 입구</text>
+<text x="603" y="2408" font-size="13" fill="#475569">모델 없음 503 · 확장자 400 · 0MB 400 · 100MB 413</text>
+<text x="603" y="2427" font-size="13" fill="#475569">tempfile 에 저장 → run_in_threadpool(process_video)</text>
+<text x="603" y="2446" font-size="13" fill="#475569">로그 job#N (X-Job-ID) · frames · tracks · ms</text>
+<rect x="1130" y="2339" width="430" height="103" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1130" y="2339" width="6" height="103" rx="2" fill="#F59E0B"/>
+<text x="1148" y="2365" font-size="15.5" font-weight="700" fill="#0F172A">오류 응답 → AIServiceError</text>
+<rect x="1144" y="2375" width="137.38400000000001" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="1151" y="2389" font-size="12" font-weight="700" fill="#0F172A">역할 · 실패 사유 전달</text>
+<text x="1148" y="2408" font-size="13" fill="#475569">400 확장자 · 빈 파일 · 413 용량 · 503 모델</text>
+<text x="1148" y="2427" font-size="13" fill="#475569">422 영상 못 읽음 → Celery 가 FAILURE 저장</text>
+<rect x="585" y="2503" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="2503" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="2529" font-size="15.5" font-weight="700" fill="#0F172A">PosePipeline.probe_video() → model.track()</text>
+<rect x="599" y="2539" width="175.7984" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="2553" font-size="12" font-weight="700" fill="#0F172A">역할 · 영상 읽기 · 사람 추적</text>
+<text x="603" y="2572" font-size="13" fill="#475569">probe: fps · frames · width · height · duration_sec</text>
+<text x="603" y="2591" font-size="13" fill="#475569">track(stream=True, persist=False, bytetrack.yaml)</text>
+<text x="603" y="2610" font-size="13" fill="#475569">열 수 없음 → VideoReadError → 422</text>
+<rect x="585" y="2667" width="430" height="103" rx="8" fill="#F0FDF4" stroke="#22C55E" stroke-width="2"/>
+<rect x="585" y="2667" width="6" height="103" rx="2" fill="#22C55E"/>
+<text x="603" y="2693" font-size="15.5" font-weight="700" fill="#0F172A">Frame 별 관절 · track_id</text>
+<rect x="599" y="2703" width="150.10399999999998" height="19" rx="3" fill="#22C55E" fill-opacity="0.13"/>
+<text x="606" y="2717" font-size="12" font-weight="700" fill="#0F172A">역할 · 사람별 관절 좌표</text>
+<text x="603" y="2736" font-size="13" fill="#475569">boxes.id → track_id · keypoints.xy → (사람, 17, 2)</text>
+<text x="603" y="2755" font-size="13" fill="#475569">영상 시각 t = frame_idx / fps</text>
+<rect x="585" y="2812" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="2812" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="2838" font-size="15.5" font-weight="700" fill="#0F172A">multi_person_utils.feature_from_keypoints()</text>
+<rect x="599" y="2848" width="151.1216" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="2862" font-size="12" font-weight="700" fill="#0F172A">역할 · 관절 → 38개 숫자</text>
+<text x="603" y="2881" font-size="13" fill="#475569">normalize_by_shoulder_width → 17 × 2 = 34</text>
+<text x="603" y="2900" font-size="13" fill="#475569">selected_joint_angles → 4 (팔꿈치 · 무릎)  = 38-D</text>
+<text x="603" y="2919" font-size="13" fill="#475569">모양이 (17, 2) 아니거나 NaN → None</text>
+<rect x="40" y="2812" width="430" height="103" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="40" y="2812" width="6" height="103" rx="2" fill="#3B82F6"/>
+<text x="58" y="2838" font-size="15.5" font-weight="700" fill="#0F172A">src/feature_utils.py</text>
+<rect x="54" y="2848" width="158.7536" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="61" y="2862" font-size="12" font-weight="700" fill="#0F172A">역할 · 정규화 · 각도 계산</text>
+<text x="58" y="2881" font-size="13" fill="#475569">center_keypoints: 골반 중심 = (0, 0)</text>
+<text x="58" y="2900" font-size="13" fill="#475569">shoulder_width 로 크기 · calculate_angle</text>
+<rect x="585" y="2976" width="430" height="103" rx="8" fill="#F0FDF4" stroke="#22C55E" stroke-width="2"/>
+<rect x="585" y="2976" width="6" height="103" rx="2" fill="#22C55E"/>
+<text x="603" y="3002" font-size="15.5" font-weight="700" fill="#0F172A">tracks[track_id].items</text>
+<rect x="599" y="3012" width="189.02720000000002" height="19" rx="3" fill="#22C55E" fill-opacity="0.13"/>
+<text x="606" y="3026" font-size="12" font-weight="700" fill="#0F172A">역할 · 사람별 시간순 Feature</text>
+<text x="603" y="3045" font-size="13" fill="#475569">[(t, 38-D float32 또는 None), …] · frame_count</text>
+<text x="603" y="3064" font-size="13" fill="#475569">lost_timeout 2초 안에 안 보이면 None 으로 빈칸</text>
+<rect x="585" y="3121" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="3121" width="6" height="122" rx="2" fill="#334155"/>
+<text x="603" y="3147" font-size="15.5" font-weight="700" fill="#0F172A">action_inference._predict_track()</text>
+<rect x="599" y="3157" width="186.1016" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="3171" font-size="12" font-weight="700" fill="#0F172A">역할 · 5초 Window → 30 Step</text>
+<text x="603" y="3190" font-size="13" fill="#475569">TimedFeatureBuffer(5.0) · is_ready(0.8, 0.6, 10)</text>
+<text x="603" y="3209" font-size="13" fill="#475569">0.25초마다 predict_from_window</text>
+<text x="603" y="3228" font-size="13" fill="#475569">→ resample_sequence (30, 38) → flatten (1, 1140)</text>
+<rect x="40" y="3121" width="430" height="103" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2"/>
+<rect x="40" y="3121" width="6" height="103" rx="2" fill="#3B82F6"/>
+<text x="58" y="3147" font-size="15.5" font-weight="700" fill="#0F172A">src/realtime_utils.py · sequence_utils.py</text>
+<rect x="54" y="3157" width="165.2408" height="19" rx="3" fill="#3B82F6" fill-opacity="0.13"/>
+<text x="61" y="3171" font-size="12" font-weight="700" fill="#0F172A">역할 · Window · 보간 도구</text>
+<text x="58" y="3190" font-size="13" fill="#475569">TimedFeatureBuffer · predict_from_window</text>
+<text x="58" y="3209" font-size="13" fill="#475569">resample_sequence · flatten_sequence</text>
+<rect x="1130" y="3121" width="430" height="103" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1130" y="3121" width="6" height="103" rx="2" fill="#F59E0B"/>
+<text x="1148" y="3147" font-size="15.5" font-weight="700" fill="#0F172A">5초 Window 가 안 차는 짧은 영상</text>
+<rect x="1144" y="3157" width="167.1488" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="1151" y="3171" font-size="12" font-weight="700" fill="#0F172A">역할 · 짧은 영상 대체 경로</text>
+<text x="1148" y="3190" font-size="13" fill="#475569">mode = whole_track: 유효 10프레임 이상</text>
+<text x="1148" y="3209" font-size="13" fill="#475569">보인 구간 전체를 30 Step 으로 1번 예측</text>
+<rect x="585" y="3285" width="430" height="122" rx="8" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="2"/>
+<rect x="585" y="3285" width="6" height="122" rx="2" fill="#8B5CF6"/>
+<text x="603" y="3311" font-size="15.5" font-weight="700" fill="#0F172A">RandomForest.predict_proba()</text>
+<rect x="599" y="3321" width="161.8064" height="19" rx="3" fill="#8B5CF6" fill-opacity="0.13"/>
+<text x="606" y="3335" font-size="12" font-weight="700" fill="#0F172A">역할 · 6개 동작 확률 계산</text>
+<text x="603" y="3354" font-size="13" fill="#475569">rf_action_baseline.joblib · 입력 (1, 1140) → 확률 (1, 6)</text>
+<text x="603" y="3373" font-size="13" fill="#475569">Window 확률 평균 → argmax → action_label · confidence</text>
+<text x="603" y="3392" font-size="13" fill="#475569">확률 열 순서 = model.classes_</text>
+<rect x="903" y="3275" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="3285" r="3.8" fill="#DC2626"/>
+<text x="925" y="3289.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="585" y="3449" width="430" height="141" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="585" y="3449" width="6" height="141" rx="2" fill="#F59E0B"/>
+<text x="603" y="3475" font-size="15.5" font-weight="700" fill="#0F172A">200 JSON (FastAPI 응답)</text>
+<rect x="599" y="3485" width="182.92159999999998" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="606" y="3499" font-size="12" font-weight="700" fill="#0F172A">역할 · Celery 에 돌려줄 결과</text>
+<text x="603" y="3518" font-size="13" fill="#475569">person_found · message · processing_ms · video{frames…}</text>
+<text x="603" y="3537" font-size="13" fill="#475569">model{classes, n_features, sequence_steps, …}</text>
+<text x="603" y="3556" font-size="13" fill="#475569">predictions[track_id · action_label · confidence</text>
+<text x="603" y="3575" font-size="13" fill="#475569">  · windows · frame_count · mode · probabilities]</text>
+<rect x="903" y="3439" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="3449" r="3.8" fill="#DC2626"/>
+<text x="925" y="3453.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="585" y="3698" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="3698" width="6" height="141" rx="2" fill="#334155"/>
+<text x="603" y="3724" font-size="15.5" font-weight="700" fill="#0F172A">tasks.save_result(job, data)</text>
+<rect x="599" y="3734" width="156.46399999999997" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="3748" font-size="12" font-weight="700" fill="#0F172A">역할 · 결과를 DB 에 저장</text>
+<text x="603" y="3767" font-size="13" fill="#475569">action_label ∈ models.ActionLabel 6개 확인</text>
+<text x="603" y="3786" font-size="13" fill="#475569">transaction.atomic: 기존 예측 delete → bulk_create</text>
+<text x="603" y="3805" font-size="13" fill="#475569">job: SUCCESS · video_frames · video_fps · processing_ms</text>
+<text x="603" y="3824" font-size="13" fill="#475569">JSON message → result_message (사람 없음 안내 등)</text>
+<rect x="903" y="3688" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="3698" r="3.8" fill="#DC2626"/>
+<text x="925" y="3702.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="1130" y="3698" width="430" height="122" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="1130" y="3698" width="6" height="122" rx="2" fill="#F59E0B"/>
+<text x="1148" y="3724" font-size="15.5" font-weight="700" fill="#0F172A">tasks._fail(job, message)</text>
+<rect x="1144" y="3734" width="107.61919999999999" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="1151" y="3748" font-size="12" font-weight="700" fill="#0F172A">역할 · 실패 기록</text>
+<text x="1148" y="3767" font-size="13" fill="#475569">CameraError · AIServiceError · SoftTimeLimitExceeded</text>
+<text x="1148" y="3786" font-size="13" fill="#475569">FAILURE + error_message + finished_at 저장</text>
+<text x="1148" y="3805" font-size="13" fill="#475569">로그 job#N 실패 (총 N초)</text>
+<rect x="40" y="3881" width="430" height="160" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="3881" width="6" height="160" rx="2" fill="#334155"/>
+<text x="58" y="3907" font-size="15.5" font-weight="700" fill="#0F172A">analyses/models.py</text>
+<rect x="54" y="3917" width="158.7536" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="3931" font-size="12" font-weight="700" fill="#0F172A">역할 · 테이블 · 규칙 정의</text>
+<text x="58" y="3950" font-size="13" fill="#475569">AnalysisJob: user · input_type · video_file · status</text>
+<text x="58" y="3969" font-size="13" fill="#475569">  celery_task_id · error_message · processing_ms</text>
+<text x="58" y="3988" font-size="13" fill="#475569">PersonPrediction: job FK · track_id · action_label</text>
+<text x="58" y="4007" font-size="13" fill="#475569">  confidence · window_count · probabilities (JSON)</text>
+<text x="58" y="4026" font-size="13" fill="#475569">visible_to(user) · is_stale · is_uncertain(&lt; 0.55)</text>
+<rect x="585" y="3881" width="430" height="141" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2"/>
+<rect x="585" y="3881" width="6" height="141" rx="2" fill="#F59E0B"/>
+<text x="603" y="3907" font-size="15.5" font-weight="700" fill="#0F172A">PostgreSQL (postgres:5432)</text>
+<rect x="599" y="3917" width="107.61919999999999" height="19" rx="3" fill="#F59E0B" fill-opacity="0.13"/>
+<text x="606" y="3931" font-size="12" font-weight="700" fill="#0F172A">역할 · 영구 저장</text>
+<text x="603" y="3950" font-size="13" fill="#475569">analyses_analysisjob: 작업 1행 · status · 영상 정보</text>
+<text x="603" y="3969" font-size="13" fill="#475569">analyses_personprediction: 사람(track) 1명당 1행</text>
+<text x="603" y="3988" font-size="13" fill="#475569">UniqueConstraint(job, track_id) · auth_user 1 ─ N job</text>
+<text x="603" y="4007" font-size="13" fill="#475569">볼륨 postgres_data (컨테이너를 지워도 유지)</text>
+<rect x="903" y="3871" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="916" cy="3881" r="3.8" fill="#DC2626"/>
+<text x="925" y="3885.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<rect x="40" y="4064" width="430" height="160" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="4064" width="6" height="160" rx="2" fill="#334155"/>
+<text x="58" y="4090" font-size="15.5" font-weight="700" fill="#0F172A">serializers.py  · 응답 JSON</text>
+<rect x="54" y="4100" width="129.752" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="4114" font-size="12" font-weight="700" fill="#0F172A">역할 · DB 행 → JSON</text>
+<text x="58" y="4133" font-size="13" fill="#475569">AnalysisJobStatusSerializer: status · is_finished</text>
+<text x="58" y="4152" font-size="13" fill="#475569">  is_stale · error_message · prediction_count</text>
+<text x="58" y="4171" font-size="13" fill="#475569">AnalysisJobSerializer: + video_url · total_seconds</text>
+<text x="58" y="4190" font-size="13" fill="#475569">  predictions[] = PersonPredictionSerializer</text>
+<text x="58" y="4209" font-size="13" fill="#475569">  action_display · confidence · is_uncertain</text>
+<rect x="585" y="4064" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="4064" width="6" height="141" rx="2" fill="#334155"/>
+<text x="603" y="4090" font-size="15.5" font-weight="700" fill="#0F172A">views.status() · retrieve()  · DRF</text>
+<rect x="599" y="4100" width="179.8688" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="4114" font-size="12" font-weight="700" fill="#0F172A">역할 · 본인 작업만 조회 응답</text>
+<text x="603" y="4133" font-size="13" fill="#475569">get_queryset: visible_to(user) → 남의 id 404</text>
+<text x="603" y="4152" font-size="13" fill="#475569">status/ → annotate(Count(predictions)) 만</text>
+<text x="603" y="4171" font-size="13" fill="#475569">{id}/ → prefetch predictions · 목록 20개씩</text>
+<text x="603" y="4190" font-size="13" fill="#475569">PATCH 제목 · 메모 · DELETE 진행 중 409</text>
+<rect x="1130" y="4064" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="1130" y="4064" width="6" height="141" rx="2" fill="#334155"/>
+<text x="1148" y="4090" font-size="15.5" font-weight="700" fill="#0F172A">page_views.dashboard · dashboard.js</text>
+<rect x="1144" y="4100" width="120.33919999999999" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="1151" y="4114" font-size="12" font-weight="700" fill="#0F172A">역할 · 관리자 통계</text>
+<text x="1148" y="4133" font-size="13" fill="#475569">GET /dashboard/ · @staff_member_required</text>
+<text x="1148" y="4152" font-size="13" fill="#475569">_count_by() GROUP BY · Avg(processing_ms)</text>
+<text x="1148" y="4171" font-size="13" fill="#475569">→ chart_data (json_script) → Chart.js × 4</text>
+<text x="1148" y="4190" font-size="13" fill="#475569">/admin/ → admin.py (예측 수 annotate · 필터)</text>
+<rect x="585" y="4266" width="430" height="141" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="585" y="4266" width="6" height="141" rx="2" fill="#334155"/>
+<text x="603" y="4292" font-size="15.5" font-weight="700" fill="#0F172A">analyses.js · 상태 · 결과 표</text>
+<rect x="599" y="4302" width="107.61919999999999" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="606" y="4316" font-size="12" font-weight="700" fill="#0F172A">역할 · 결과 표시</text>
+<text x="603" y="4335" font-size="13" fill="#475569">poll(): 2초마다 GET /api/v1/analyses/{id}/status/</text>
+<text x="603" y="4354" font-size="13" fill="#475569">600초 넘거나 is_stale → 멈추고 안내</text>
+<text x="603" y="4373" font-size="13" fill="#475569">SUCCESS → showResult(): GET /api/v1/analyses/{id}/</text>
+<text x="603" y="4392" font-size="13" fill="#475569">is_uncertain → '판단 불확실' 배지</text>
+<rect x="40" y="4266" width="430" height="122" rx="8" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<rect x="40" y="4266" width="6" height="122" rx="2" fill="#334155"/>
+<text x="58" y="4292" font-size="15.5" font-weight="700" fill="#0F172A">page_views.detail · detail.html</text>
+<rect x="54" y="4302" width="107.61919999999999" height="19" rx="3" fill="#334155" fill-opacity="0.13"/>
+<text x="61" y="4316" font-size="12" font-weight="700" fill="#0F172A">역할 · 상세 화면</text>
+<text x="58" y="4335" font-size="13" fill="#475569">GET /analyses/{id}/ · @login_required</text>
+<text x="58" y="4354" font-size="13" fill="#475569">visible_to(user) → 남의 것 404 (API 와 같은 규칙)</text>
+<text x="58" y="4373" font-size="13" fill="#475569">새로고침해도 DB 에서 다시 조회</text>
+<rect x="40" y="4535" width="430" height="122" rx="8" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="58" y="4561" font-size="15.5" font-weight="700" fill="#0F172A">analyses/tests.py  · 36</text>
+<text x="58" y="4585" font-size="13" fill="#475569">API: 202 · 400 · 404 · 409 · PATCH 제목만</text>
+<text x="58" y="4604" font-size="13" fill="#475569">/api/v1 주소 · status_url · health 200/503</text>
+<text x="58" y="4623" font-size="13" fill="#475569">등록 실패 503 · 멈춘 작업 삭제 · 폴링 600초</text>
+<text x="58" y="4642" font-size="13" fill="#475569">job#N 로그 · X-Job-ID · 쿼리 수 · is_uncertain</text>
+<rect x="585" y="4535" width="430" height="103" rx="8" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="603" y="4561" font-size="15.5" font-weight="700" fill="#0F172A">analyses/test_camera_preview.py  · 10</text>
+<text x="603" y="4585" font-size="13" fill="#475569">로그인 필요 · 허용 목록 밖 404</text>
+<text x="603" y="4604" font-size="13" fill="#475569">MJPEG 중계 후 카메라 닫힘 · 60초 끊김</text>
+<text x="603" y="4623" font-size="13" fill="#475569">브라우저 종료 · 카메라 실패 502 (주소 안 보임)</text>
+<rect x="1130" y="4535" width="430" height="103" rx="8" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-dasharray="7 5"/>
+<text x="1148" y="4561" font-size="15.5" font-weight="700" fill="#0F172A">accounts/tests.py  · 5</text>
+<text x="1148" y="4585" font-size="13" fill="#475569">가입 → 바로 로그인 · 로그인 · 로그아웃</text>
+<text x="1148" y="4604" font-size="13" fill="#475569">미로그인 화면 → 로그인 · API → 401/403</text>
+<text x="1148" y="4623" font-size="13" fill="#475569">GET /api/v1/auth/me/</text>
+<rect x="40" y="4705" width="102" height="20" rx="10" fill="#fff" stroke="#DC2626" stroke-width="1.4"/>
+<circle cx="53" cy="4715" r="3.8" fill="#DC2626"/><text x="62" y="4719.5" font-size="12" font-weight="700" fill="#DC2626">action_label</text>
+<text x="156" y="4720" font-size="13" fill="#475569">models/ 의 model.classes_ → predict_proba 열 순서 → JSON action_label → save_result 검사 → PersonPrediction.action_label → 화면 (정답이 아니라 예측값)</text>
+<rect x="40" y="4741" width="30" height="18" rx="3" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.8"/>
+<text x="78" y="4755" font-size="13" fill="#475569">설정 · 직접 작성 파일</text>
+<rect x="234.1" y="4741" width="30" height="18" rx="3" fill="#ECFEFF" stroke="#06B6D4" stroke-width="1.8"/>
+<text x="272.1" y="4755" font-size="13" fill="#475569">영상 · 미디어</text>
+<rect x="380.36" y="4741" width="30" height="18" rx="3" fill="#FFFFFF" stroke="#334155" stroke-width="1.8"/>
+<text x="418.36" y="4755" font-size="13" fill="#475569">Python · JS 처리</text>
+<rect x="552.36" y="4741" width="30" height="18" rx="3" fill="#F0FDF4" stroke="#22C55E" stroke-width="1.8"/>
+<text x="590.36" y="4755" font-size="13" fill="#475569">실행 중 만들어지는 데이터</text>
+<rect x="776.62" y="4741" width="30" height="18" rx="3" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.8"/>
+<text x="814.62" y="4755" font-size="13" fill="#475569">학습 모델 파일</text>
+<rect x="931.46" y="4741" width="30" height="18" rx="3" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.8"/>
+<text x="969.46" y="4755" font-size="13" fill="#475569">결과 · 저장 · 응답</text>
+<rect x="1103.98" y="4741" width="30" height="18" rx="3" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.8" stroke-dasharray="4 3"/>
+<text x="1141.98" y="4755" font-size="13" fill="#475569">검증 (실행 순서 아님)</text>
+<text x="40" y="4787" font-size="12.5" fill="#64748B">화살표 글자 = 오가는 데이터 형식 · 회색 점선 화살표 = 다른 구역에서 넘어오는 객체 · 실패 경로</text>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpjMGQ3YTEyZi03Y2RlLTQ4Y2YtODRhMi1iYzI1NjgxYzAzOWYAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaPkITcE4E4ayYJUJL8Ss+xcAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDoyMzk2NTY1OC04MTNhLTQzZjgtYmM4MC0xNDQ4OTg2OWE5MjJscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNorVjh7QLaPqwAGQLE3yCuigAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggO3zhE5lbYo2AfQUvq8qsCM6DJHj0zyg2CTV04nhCKiakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaI2JNEaXBI9InMwDVOrUqcIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYILBWNFmH9LGGRt0ih7bLLR0aWQ0xZGZNpL30x+uIZ67lZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GfiNZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmMwZDdhMTJmLTdjZGUtNDhjZi04NGEyLWJjMjU2ODFjMDM5Zi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjJlOWYxYTlkLTA4OTctNGQ0Ny05ZmQ2LWYwNzc4NmJkM2EwOHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCA7fOETmVtijYB9BS+ryqwIzoMkePTPKDYJNXTieEIqJqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggiF6DBel99nYJuHDxBThvpLXqF26jwVwvVoJ9BHgUTH+iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggsBlHnLajoZq4BAp3x3U9KJ2tgDrDq8evjPVFkMmzmd10Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQJq6nGoSPFCxRTSc5RxmORHY9W2mefIqnEra+whjRodGg4l9A2nYh5egrpHb86LARuwcjH8y/BMl7ugnK2omzcg=</c2pa:manifest></metadata></svg>
