@@ -1,0 +1,13 @@
+# F4 개선 후 재측정: 멈춘 작업 감지 (2026-11-24 20:34 KST, URL /api/v1/)
+# 개선 전(B1 analyses.js:57-82, B7a-3): 폴링 끝 조건이 is_finished 또는 HTTP 오류뿐 → Worker·Redis가 죽으면 화면이 끝없이 "대기"
+# 개선 후 코드: models.AnalysisJob.is_stale (PENDING이 PENDING_STALE_MINUTES=10분 초과 → true)
+#              static/js/analyses.js poll(): s.is_stale이면 폴링 멈춤 + "작업이 멈춘 것 같습니다(Worker가 가져가지 않음)…" 문구
+#              + POLL_TIMEOUT_SECONDS=600 (10분) 넘으면 폴링 멈춤 + "Celery Worker와 Redis가 켜져 있는지 확인하세요" 문구
+
+$ curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/v1/analyses/18/status/
+{"id":18,"status":"PENDING","status_display":"대기","is_finished":false,"is_stale":true,"error_message":"","result_message":"","celery_task_id":"bec1d2c5-36a9-4451-955b-08862ee0692d","prediction_count":0,"started_at":null,"finished_at":null}
+200
+
+# 대조: 정상 종료 작업은 is_stale:false (34번 FAILURE, 35번 SUCCESS → be_f8_redis_v1.txt)
+# 판정: B7c에서 영구 PENDING으로 남은 18번(약 8시간 경과)을 API가 is_stale:true로 알려 줌 → 화면은 이 값으로 폴링을 멈춤. F4 해결.
+#       (화면에서 10분 제한 문구까지 직접 보는 점검은 10분 대기가 필요해 생략, 코드 근거로 대신함)

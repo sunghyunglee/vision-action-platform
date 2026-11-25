@@ -1,0 +1,26 @@
+# 2026-11-24 15:51 KST · Docker(PostgreSQL)에서 자동 테스트 47개 실행 → 9개 ERROR (모두 test_camera_preview)
+$ docker compose exec django python manage.py test 2>&1 | tail -4
+Ran 47 tests in 9.427s
+
+FAILED (errors=9)
+Destroying test database for alias 'default'...
+
+$ docker compose exec django python manage.py test 2>&1 | grep -E "^(ERROR|FAIL):|Error:|Exception:" | sort | uniq -c | head -30
+      1 ....[2026-11-24 15:51:26 +0900] ERROR analyses.views: job#27 대기열 등록 실패: ConnectionRefusedError: redis down   ← 테스트가 일부러 만든 상황(정상 로그)
+      1 .[2026-11-24 15:51:26 +0900] ERROR analyses.views: job#28 대기열 등록 실패: ConnectionRefusedError: redis down    ← 같음
+      1 ERROR: test_camera_down_502_without_address (analyses.test_camera_preview.CameraPreviewTests...)
+      1 ERROR: test_camera_not_in_allow_list_404 (...)
+      1 ERROR: test_index_has_preview_without_camera_address (...)
+      1 ERROR: test_login_required (...)
+      1 ERROR: test_no_preview_without_cameras (...)
+      1 ERROR: test_not_mjpeg_502 (...)
+      1 ERROR: test_relays_mjpeg_and_closes_camera (...)
+      1 ERROR: test_stops_after_max_seconds (...)
+      1 ERROR: test_url (...)
+      9 django.db.utils.OperationalError: the connection is closed
+      9 psycopg.OperationalError: the connection is closed
+
+# 해석(추정): 9개 모두 웹캠 미리보기 테스트 파일 하나에서 나옴, 원인은 전부 "PostgreSQL 연결이 닫힘".
+# 기능 고장이 아니라 테스트 환경 문제일 가능성이 큼: 테스트 안의 res.close()(스트리밍 응답 닫기)가 Django의
+# request_finished 신호 → close_old_connections를 불러 테스트용 DB 연결을 닫는 것으로 보임.
+# SQLite(PC venv·클라우드 검증)에서는 연결을 닫아도 티가 안 나서 통과했던 것으로 추정. 실제 휴대폰 미리보기(job #28)는 정상 동작.

@@ -1,0 +1,7 @@
+# 2026-11-24 20:05 KST · 중복 정리(D1~D5) 후 Docker(PostgreSQL) 자동 테스트
+$ docker compose up -d --build django celery && docker compose exec django python manage.py test 2>&1 | tail -4
+ ✔ Image django/celery/fastapi Built · redis/fastapi/postgres Healthy · django/celery Running
+Ran 51 tests in 10.691s
+
+OK
+Destroying test database for alias 'default'...

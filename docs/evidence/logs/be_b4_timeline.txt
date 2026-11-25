@@ -1,0 +1,13 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 12:08 KST · B4 job 12 (task 8d2e6411-e56d-4427-b78a-3b619693976a) 세 서비스 로그 원본
+# 앞쪽 시각 = Docker 타임스탬프(UTC). celery 앱 로그는 KST, fastapi 앱 로그는 UTC (F7). django는 정상 202 줄 없음 (F1)
+
+$ docker compose logs --timestamps --since 2026-11-24T02:50:00Z --until 2026-11-24T02:51:00Z django celery fastapi | grep -v "/health"
+celery-1  | 2026-11-24T02:50:45.630154825Z [2026-11-24 11:50:45,627: INFO/MainProcess] Task analyses.tasks.run_analysis[8d2e6411-e56d-4427-b78a-3b619693976a] received
+celery-1  | 2026-11-24T02:50:49.385357762Z [2026-11-24 11:50:49,384: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[8d2e6411-e56d-4427-b78a-3b619693976a] succeeded in 3.737390364000021s: {'job_id': 12, 'status': 'SUCCESS'}
+fastapi-1  | 2026-11-24T02:50:49.366534833Z [2026-11-24 02:50:49,366] INFO routers.predictions: wave.mp4: 126 frames, 1 tracks, 1 predictions, 3625 ms
+fastapi-1  | 2026-11-24T02:50:49.367006966Z INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK
+django-1   | 2026-11-24T02:50:38.662092876Z Forbidden: /api/analyses/
+
+# DB 시각 (B2-2 응답): created_at 11:50:45.600 · started_at 11:50:45.700 · finished_at 11:50:49.378 (KST)
+# 타임라인 표: docs/testing.md B4

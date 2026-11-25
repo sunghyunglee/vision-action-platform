@@ -1,0 +1,18 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:39 KST · docker compose logs fastapi | grep -v "/health"  (헬스체크 줄 제외)
+# T01: 시작 시 Action 모델 6 classes · 30×38=1140 features, Pose 모델 yolo11n-pose.pt 로드
+# T03: Worker가 보낸 웹캠 수집 영상(job_4·job_5) 추론 → 200 OK
+$ docker compose logs fastapi | grep -v "/health"
+fastapi-1  | INFO:     Started server process [1]
+fastapi-1  | INFO:     Waiting for application startup.
+fastapi-1  | [2026-11-23 09:57:59,598] INFO services.model_loader: Action 모델 로드: 6 classes, 30 steps × 38 = 1140 features
+fastapi-1  | Creating new Ultralytics Settings v0.0.8 file ✅
+fastapi-1  | View Ultralytics Settings with 'yolo settings' or at '/tmp/Ultralytics/Ultralytics/settings.json'
+fastapi-1  | Update Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. For help see https://docs.ultralytics.com/usage/settings
+fastapi-1  | [2026-11-23 09:58:00,492] INFO services.pose_pipeline: Pose 모델 로드: yolo11n-pose.pt (imgsz=640, conf=0.50, tracker=bytetrack.yaml)
+fastapi-1  | INFO:     Application startup complete.
+fastapi-1  | INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+fastapi-1  | [2026-11-23 10:01:34,516] INFO routers.predictions: job_4.mp4: 146 frames, 1 tracks, 1 predictions, 4939 ms
+fastapi-1  | INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK
+fastapi-1  | [2026-11-23 10:21:16,651] INFO routers.predictions: job_5.mp4: 158 frames, 1 tracks, 1 predictions, 4561 ms
+fastapi-1  | INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK

@@ -1,0 +1,7 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:46 KST · POSE_CONF 수정 후 FastAPI 재시작 (원본 project.json person_confidence 0.25 사용)
+# 수정 전 로그: Pose 모델 로드: yolo11n-pose.pt (imgsz=640, conf=0.50, tracker=bytetrack.yaml)
+$ docker compose up -d --force-recreate fastapi
+ ✔ Container vision_action_platform-fastapi-1 Started                                                     2.5s
+$ docker compose logs fastapi --tail 20 | grep "Pose 모델"
+fastapi-1  | [2026-11-23 10:46:04,368] INFO services.pose_pipeline: Pose 모델 로드: yolo11n-pose.pt (imgsz=640, conf=0.25, tracker=bytetrack.yaml)

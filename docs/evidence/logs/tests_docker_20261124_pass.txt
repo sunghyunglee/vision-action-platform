@@ -1,0 +1,15 @@
+# 2026-11-24 16:06 KST · 코드 수정 후 Docker(PostgreSQL)에서 자동 테스트 47개 통과
+# (15:51 실패 기록: logs/tests_docker_20261124_fail.txt → 9 ERROR, test_camera_preview, DB 연결 닫힘)
+$ docker compose up -d --build django celery
+ ✔ Image vision_action_platform-django   Built
+ ✔ Image vision_action_platform-celery   Built
+ ✔ Container vision_action_platform-redis-1    Healthy
+ ✔ Container vision_action_platform-fastapi-1  Healthy
+ ✔ Container vision_action_platform-django-1   Running
+ ✔ Container vision_action_platform-celery-1   Running
+ ✔ Container vision_action_platform-postgres-1 Healthy
+$ docker compose exec django python manage.py test 2>&1 | tail -4
+Ran 47 tests in 10.733s
+
+OK
+Destroying test database for alias 'default'...

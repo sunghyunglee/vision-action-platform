@@ -1,0 +1,23 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 12:16~12:17 KST · B6 Redis 직접 조회 원본 (브로커 db0, 결과 백엔드 db1)
+
+$ docker compose exec redis redis-cli LLEN celery
+(integer) 0
+
+$ docker compose exec redis redis-cli INFO keyspace
+# Keyspace
+db0:keys=5,expires=0,avg_ttl=0,subexpiry=0
+db1:keys=14,expires=14,avg_ttl=56836037,subexpiry=0
+
+$ docker compose exec redis redis-cli -n 0 KEYS "*"
+1) "_kombu.binding.celery.pidbox"
+2) "_kombu.binding_deadlines"
+3) "_kombu.binding.celery"
+4) "_kombu.binding.celeryev"
+5) "_kombu.binding_permanent.celery"
+
+$ docker compose exec redis redis-cli -n 1 GET celery-task-meta-8d2e6411-e56d-4427-b78a-3b619693976a
+"{\"status\": \"SUCCESS\", \"result\": {\"job_id\": 12, \"status\": \"SUCCESS\"}, \"traceback\": null, \"children\": [], \"date_done\": \"2026-11-24T11:50:49.381864+09:00\", \"task_id\": \"8d2e6411-e56d-4427-b78a-3b619693976a\"}"
+
+$ docker compose exec redis redis-cli -n 1 TTL celery-task-meta-8d2e6411-e56d-4427-b78a-3b619693976a
+(integer) 84785

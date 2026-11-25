@@ -1,0 +1,57 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 11:44~11:52 KST · B2 curl API 계약 점검 원본 출력
+# 비밀번호는 ****로 가림. 해석은 docs/testing.md B2 표 참고.
+
+## B2-0 준비
+$ docker compose ps
+NAME                                IMAGE                            COMMAND                  SERVICE    CREATED        STATUS                 PORTS
+vision_action_platform-celery-1     vision_action_platform-celery    "celery -A config wo…"   celery     2 hours ago    Up 2 hours             8000/tcp
+vision_action_platform-django-1     vision_action_platform-django    "sh -c 'python manag…"   django     2 hours ago    Up 2 hours             0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+vision_action_platform-fastapi-1    vision_action_platform-fastapi   "uvicorn main:app --…"   fastapi    16 hours ago   Up 2 hours (healthy)   127.0.0.1:8001->8001/tcp
+vision_action_platform-postgres-1   postgres:16-alpine               "docker-entrypoint.s…"   postgres   2 hours ago    Up 2 hours (healthy)   5432/tcp
+vision_action_platform-redis-1      redis:7-alpine                   "docker-entrypoint.s…"   redis      17 hours ago   Up 2 hours (healthy)   6379/tcp
+$ grep -n 'path("' backend/config/urls.py
+7:    path("admin/", admin.site.urls),
+8:    path("accounts/", include("accounts.urls")),
+9:    path("", include("analyses.urls")),
+
+## B2-1 비로그인 차단 / 분석 등록 202
+$ curl -s -w "\n%{http_code}\n" http://localhost:8000/api/analyses/
+{"detail":"자격 인증 데이터가 제공되지 않았습니다."}
+403
+$ curl -s -w "\n%{http_code} %{time_total}s\n" -u user:**** -F title="B2 curl 등록" -F input_type=UPLOAD -F video_file=@.../wave.mp4 http://localhost:8000/api/analyses/
+{"id":12,"task_id":"8d2e6411-e56d-4427-b78a-3b619693976a","status":"PENDING","status_url":"/api/analyses/12/status/"}
+202 0.181477s
+
+## B2-2 조회와 권한
+$ curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/12/status/
+{"id":12,"status":"SUCCESS","status_display":"완료","is_finished":true,"error_message":"","result_message":"1명의 동작을 예측했습니다.","celery_task_id":"8d2e6411-e56d-4427-b78a-3b619693976a","prediction_count":1,"started_at":"2026-11-24T11:50:45.700510+09:00","finished_at":"2026-11-24T11:50:49.378153+09:00"}
+200
+$ curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/12/
+{"id":12,"username":"user","title":"B2 curl 등록","memo":"","input_type":"UPLOAD","input_type_display":"영상 업로드","video_url":"/media/videos/2026/11/24/wave.mp4","camera_index":null,"capture_seconds":null,"expected_action":"","status":"SUCCESS","status_display":"완료","celery_task_id":"8d2e6411-e56d-4427-b78a-3b619693976a","error_message":"","result_message":"1명의 동작을 예측했습니다.","video_frames":126,"video_fps":25.0,"video_duration_sec":5.04,"processing_ms":3625,"total_seconds":3.8,"created_at":"2026-11-24T11:50:45.600074+09:00","started_at":"2026-11-24T11:50:45.700510+09:00","finished_at":"2026-11-24T11:50:49.378153+09:00","predictions":[{"id":10,"track_id":1,"action_label":"wave","action_display":"A006 손 흔들기","confidence":0.4533,"is_uncertain":true,"window_count":4,"frame_count":126,"probabilities":{"wave":0.4533,"sit_stand":0.1117,"bend_return":0.11,"drink_return":0.1625,"walk_turn_walk":0.0408,"leg_raise_lower":0.1217},"created_at":"2026-11-24T11:50:49.376070+09:00"}]}
+200
+$ curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/11/
+{"detail":"No AnalysisJob matches the given query."}
+404
+$ curl -s -o /dev/null -w "%{http_code}\n" -u admin:**** http://localhost:8000/api/analyses/12/
+200
+
+## B2-3 수정 제한 · PUT 405 · 삭제 409/204
+$ (job 13 등록 후 손으로 DELETE) echo "id=$ID"; curl -s -w "\n%{http_code}\n" -u user:**** -X DELETE http://localhost:8000/api/analyses/$ID/
+id=13
+
+204
+$ curl -s -w "\n%{http_code}\n" -u user:**** -X PATCH -H "Content-Type: application/json" -d '{"title":"B2 제목 수정","status":"FAILURE","processing_ms":1}' http://localhost:8000/api/analyses/12/
+{"id":12,"username":"user","title":"B2 제목 수정",...,"status":"SUCCESS","status_display":"완료",...,"processing_ms":3625,"total_seconds":3.8,...}
+200
+$ curl -s -w "\n%{http_code}\n" -u user:**** -X PUT -H "Content-Type: application/json" -d '{"title":"PUT 점검"}' http://localhost:8000/api/analyses/12/
+{"detail":"메서드 \"PUT\"는 허용되지 않습니다."}
+405
+$ ID=$(curl -s -u user:**** -F title="B2 삭제 점검2" ... http://localhost:8000/api/analyses/ | python3 -c "...['id']") && echo "id=$ID" && curl -s -w "\n%{http_code}\n" -u user:**** -X DELETE http://localhost:8000/api/analyses/$ID/
+id=15
+{"detail":"분석이 진행 중인 작업은 삭제할 수 없습니다."}
+409
+$ sleep 10; curl ... -X DELETE http://localhost:8000/api/analyses/$ID/
+(사용자 확인: 예상과 같음 204, 원본 출력 없음)
+$ curl ... http://localhost:8000/api/analyses/$ID/
+(사용자 확인: 예상과 같음 404, 원본 출력 없음)

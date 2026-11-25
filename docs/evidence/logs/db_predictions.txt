@@ -1,0 +1,11 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:37 KST · PostgreSQL analyses_personprediction (사람별 예측 테이블)
+# 작업(job) 1건 ── 사람(track) N행. #2(FAILURE)는 예측 없음. T04(두 사람)는 아직 없음
+$ docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select job_id, track_id, action_label, round(confidence::numeric,3) as conf, window_count from analyses_personprediction order by job_id;"'
+ job_id | track_id | action_label | conf  | window_count
+--------+----------+--------------+-------+--------------
+      1 |        1 | wave         | 0.453 |            4
+      3 |        1 | wave         | 0.453 |            4
+      4 |        1 | sit_stand    | 0.337 |           15
+      5 |        1 | sit_stand    | 0.319 |           16
+(4 rows)

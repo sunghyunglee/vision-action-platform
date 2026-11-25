@@ -1,0 +1,9 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:36 KST · ~/vision_action_platform · docker compose ps (서비스 5개 실행 상태)
+$ docker compose ps
+NAME                                IMAGE                            COMMAND                  SERVICE    CREATED             STATUS                       PORTS
+vision_action_platform-celery-1     vision_action_platform-celery    "celery -A config wo…"   celery     38 minutes ago      Up 38 minutes                8000/tcp
+vision_action_platform-django-1     vision_action_platform-django    "sh -c 'python manag…"   django     38 minutes ago      Up 38 minutes                0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+vision_action_platform-fastapi-1    vision_action_platform-fastapi   "uvicorn main:app --…"   fastapi    38 minutes ago      Up 38 minutes (healthy)      127.0.0.1:8001->8001/tcp
+vision_action_platform-postgres-1   postgres:16-alpine               "docker-entrypoint.s…"   postgres   38 minutes ago      Up 38 minutes (healthy)      5432/tcp
+vision_action_platform-redis-1      redis:7-alpine                   "docker-entrypoint.s…"   redis      About an hour ago   Up About an hour (healthy)   6379/tcp

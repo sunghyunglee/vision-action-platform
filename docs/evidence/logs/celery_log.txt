@@ -1,0 +1,45 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:38 KST · docker compose logs celery --tail 40
+# 18:58 django·celery 재생성(.env 변경) 이후 로그라 #1~#3 처리 줄은 없음.
+# T03: 카메라 0에서 8.0초 수집(146·158프레임) / T05: received → succeeded (웹 요청과 별도로 Worker가 처리)
+# 브로커: redis://redis:6379/0 (Compose 서비스 이름으로 연결)
+$ docker compose logs celery --tail 40
+celery-1  | /usr/local/lib/python3.11/site-packages/celery/platforms.py:893: SecurityWarning: You're running the worker with superuser privileges: this is
+celery-1  | absolutely not recommended!
+celery-1  |
+celery-1  | Please specify a different user using the --uid option.
+celery-1  |
+celery-1  | User information: uid=0 euid=0 gid=0 egid=0
+celery-1  |
+celery-1  |   _warn_or_raise_security_error(egid, euid, gid, uid,
+celery-1  |
+celery-1  |  -------------- celery@e740a15c0dd5 v5.7.0 (collider)
+celery-1  | --- ***** -----
+celery-1  | -- ******* ---- Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.41 2026-11-23 18:58:04
+celery-1  | - *** --- * ---
+celery-1  | - ** ---------- [config]
+celery-1  | - ** ---------- .> app:         config:0x74a3f2388650
+celery-1  | - ** ---------- .> transport:   redis://:**@redis:6379/0
+celery-1  | - ** ---------- .> results:     redis://redis:6379/1
+celery-1  | - *** --- * --- .> concurrency: 2 (prefork)
+celery-1  | -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+celery-1  | --- ***** -----
+celery-1  |  -------------- [queues]
+celery-1  |                 .> celery           exchange=celery(direct) key=celery
+celery-1  |
+celery-1  |
+celery-1  | [tasks]
+celery-1  |   . analyses.tasks.run_analysis
+celery-1  |
+celery-1  | [2026-11-23 18:58:05,081: INFO/MainProcess] Connected to redis://:**@redis:6379/0
+celery-1  | [2026-11-23 18:58:05,083: INFO/MainProcess] mingle: searching for neighbors
+celery-1  | [2026-11-23 18:58:06,092: INFO/MainProcess] mingle: all alone
+celery-1  | [2026-11-23 18:58:06,102: INFO/MainProcess] celery@e740a15c0dd5 ready.
+celery-1  | [2026-11-23 19:01:19,688: INFO/MainProcess] Task analyses.tasks.run_analysis[15d246a6-a732-4185-b564-b944d25d0e1d] received
+celery-1  | [2026-11-23 19:01:29,537] INFO analyses.camera_capture: 카메라 0에서 8.0초 동안 146프레임 수집(18.2 fps)
+celery-1  | [2026-11-23 19:01:29,537: INFO/ForkPoolWorker-2] 카메라 0에서 8.0초 동안 146프레임 수집(18.2 fps)
+celery-1  | [2026-11-23 19:01:34,526: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[15d246a6-a732-4185-b564-b944d25d0e1d] succeeded in 14.837748056001146s: {'job_id': 4, 'status': 'SUCCESS'}
+celery-1  | [2026-11-23 19:21:03,704: INFO/MainProcess] Task analyses.tasks.run_analysis[3b63e296-1d0f-46fe-852c-da195564f888] received
+celery-1  | [2026-11-23 19:21:12,080] INFO analyses.camera_capture: 카메라 0에서 8.0초 동안 158프레임 수집(19.7 fps)
+celery-1  | [2026-11-23 19:21:12,080: INFO/ForkPoolWorker-2] 카메라 0에서 8.0초 동안 158프레임 수집(19.7 fps)
+celery-1  | [2026-11-23 19:21:16,659: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[3b63e296-1d0f-46fe-852c-da195564f888] succeeded in 12.953773196000839s: {'job_id': 5, 'status': 'SUCCESS'}

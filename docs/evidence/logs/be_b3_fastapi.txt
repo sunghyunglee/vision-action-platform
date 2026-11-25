@@ -1,0 +1,43 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 12:05~12:07 KST · B3 FastAPI 단독 점검 원본 출력 (Django 거치지 않고 127.0.0.1:8001 직접)
+
+## B3-1 헬스체크
+$ curl -s http://127.0.0.1:8001/health | python3 -m json.tool
+{
+    "status": "ok",
+    "model_loaded": true,
+    "classes": ["bend_return","drink_return","leg_raise_lower","sit_stand","walk_turn_walk","wave"],
+    "n_features": 1140,
+    "sequence_steps": 30,
+    "feature_dim": 38,
+    "pose_model": "yolo11n-pose.pt",
+    "error": null
+}
+
+## B3-2 Swagger (http://127.0.0.1:8001/docs)
+(사용자 화면 확인: Vision Action AI Service 1.0.0, POST /predict/video · GET /health 2개만)
+
+## B3-3 정상 영상
+$ curl -s -w "\n%{http_code} %{time_total}s\n" -F file=@.../wave.mp4 http://127.0.0.1:8001/predict/video
+{"person_found":true,"message":"1명의 동작을 예측했습니다.","processing_ms":3248,"video":{"fps":25.0,"frames":126,"width":640,"height":480,"duration_sec":5.04,"analyzed_frames":126},"model":{"classes":["bend_return","drink_return","leg_raise_lower","sit_stand","walk_turn_walk","wave"],"n_features":1140,"sequence_steps":30,"window_seconds":5.0,"confidence_threshold":0.55},"predictions":[{"track_id":1,"action_label":"wave","confidence":0.4533,"windows":4,"frame_count":126,"mode":"window","stable_label":"UNKNOWN","probabilities":{"bend_return":0.11,"drink_return":0.1625,"leg_raise_lower":0.1217,"sit_stand":0.1117,"walk_turn_walk":0.0408,"wave":0.4533}}]}
+200 3.250985s
+
+## B3-4 손상 영상
+$ head -c 4096 /dev/urandom > /tmp/b3_broken.mp4; curl -s -w "\n%{http_code}\n" -F file=@.../b3_broken.mp4 http://127.0.0.1:8001/predict/video
+{"detail":"영상을 열 수 없습니다(손상되었거나 지원하지 않는 코덱)."}
+422
+
+## B3-5 빈 파일
+$ : > /tmp/b3_empty.mp4; curl -s -w "\n%{http_code}\n" -F file=@.../b3_empty.mp4 http://127.0.0.1:8001/predict/video
+{"detail":"빈 파일입니다."}
+400
+
+## B3-6 .txt
+$ echo hello > /tmp/b3_note.txt; curl -s -w "\n%{http_code}\n" -F file=@/tmp/b3_note.txt http://127.0.0.1:8001/predict/video
+{"detail":"지원하지 않는 영상 형식입니다(.txt)."}
+400
+
+## B3-7 파일 없이
+$ curl -s -w "\n%{http_code}\n" -X POST http://127.0.0.1:8001/predict/video
+{"detail":[{"type":"missing","loc":["body","file"],"msg":"Field required","input":null}]}
+422

@@ -1,0 +1,10 @@
+# 2026-11-24 20:03 KST · 개선 후 django 로그 (docker compose logs django --tail 15)
+# 개선 6번: 등록 시 analyses.views가 job 번호와 task id를 INFO로 남김 (어제 B4에서는 정상 202 요청이 django 로그에 한 줄도 없었음 = F1)
+# gunicorn 접근 로그(POST ... 202 형식)는 없음. 대신 앱 로그로 job#·task 연결 가능.
+django-1  | [2026-11-24 19:50:27 +0900] INFO analyses.views: job#33 대기열 등록 task=b4bd2184-df91-4090-965a-4405c937cd1d   ← 버튼 1 (IP Webcam 분석, cb_3_webcam_analysis_202.png와 같은 시각)
+django-1  | [2026-11-24 19:50:30 +0900] WARNING analyses: 카메라 0 미리보기 연결 실패: ConnectionError                     ← 버튼 3 카메라 꺼짐 (cb_3_stream_502_camera_off.png)
+django-1  | Bad Gateway: /cameras/0/stream/
+django-1  | Not Found: /.well-known/appspecific/com.chrome.devtools.json   ← Chrome 개발자 도구가 자동으로 찾는 파일 (앱과 무관, 무시)
+django-1  | Not Found: /analyses/1/                                          ← 버튼 4 남의 작업 404 (cb_4_detail_other_user_404.png)
+django-1  | Not Found: /.well-known/appspecific/com.chrome.devtools.json   (같은 줄 10번 더 반복, 생략)
+# 로그 시각이 KST(+0900)로 찍힘 = F7(시간대 통일) 개선 반영 확인

@@ -1,0 +1,16 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 12:41~12:42 KST · B9 docker compose restart 전후 행 수 비교
+
+## B9. 재시작 내구성 (`docker compose restart`, 2026-11-24 12:41~12:42 KST)
+
+> 원본: `logs/be_b9_restart.txt`
+
+| 시점 | jobs | predictions | users |
+|---|---|---|---|
+| 재시작 전 (12:41) | 22 | 17 | 2 |
+| 5개 서비스 전체 재시작 + 40초 뒤 (12:42) | **22** | **17** | **2** |
+
+- 4. 재시작 후 `GET /api/analyses/12/status/` → SUCCESS · prediction_count 1 (사용자 확인: 예상과 같음, 원본 출력 없음)
+- 5. 재시작 후 FastAPI `/health` → ok · model_loaded true (사용자 확인: 예상과 같음, 원본 출력 없음)
+
+**해석**: 컨테이너가 모두 재시작돼도 PostgreSQL 데이터는 named volume `postgres_data`에 있어 그대로. 멈춘 18 · 19번(PENDING)도 그대로 남음 → 재시작이 멈춘 작업을 정리해 주지 않는다는 것도 확인 (개선 4번 필요성 재확인). 2026-11-23 T10(재시작 후 유지) 증거를 오늘 데이터로 보강.

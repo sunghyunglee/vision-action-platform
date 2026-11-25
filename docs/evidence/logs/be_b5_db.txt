@@ -1,0 +1,52 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 12:13~12:15 KST · B5 PostgreSQL 직접 조회 원본 (해석: docs/testing.md B5)
+
+## B5-1 작업 목록
+$ docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select j.id, u.username, j.input_type, j.status, j.processing_ms, round(extract(epoch from (j.finished_at - j.created_at))::numeric, 2) as total_s, left(j.title, 20) as title from analyses_analysisjob j join auth_user u on u.id = j.user_id order by j.id;"'
+ id | username | input_type | status  | processing_ms | total_s |           title
+----+----------+------------+---------+---------------+---------+----------------------------
+  1 | admin    | UPLOAD     | SUCCESS |          4069 |    4.20 | Docker 손 흔들기 테스트
+  2 | admin    | WEBCAM     | FAILURE |               |    4.11 | 카메라 꺼짐 테스트
+  3 | admin    | UPLOAD     | SUCCESS |          4099 |    4.19 | 비동기 처리 테스트
+  4 | admin    | WEBCAM     | SUCCESS |          4939 |   14.93 | IP Webcam 손 흔들기
+  5 | admin    | WEBCAM     | SUCCESS |          4561 |   13.04 | IP Webcam 손 흔들기
+  6 | admin    | UPLOAD     | SUCCESS |          3299 |    3.33 | 로그용 업로드
+  7 | admin    | WEBCAM     | FAILURE |               |    2.48 | 로그용 카메라 끊김
+  8 | admin    | UPLOAD     | FAILURE |               |    0.11 | 두 사람 악수 (T04)
+  9 | admin    | UPLOAD     | SUCCESS |          1901 |    2.00 | 두 사람 악수 (T04)
+ 10 | admin    | WEBCAM     | SUCCESS |          4031 |   13.99 | 웹캠 손 흔들기 (conf 0.25)
+ 11 | admin    | WEBCAM     | SUCCESS |          4053 |   13.76 | 웹캠 손 흔들기 (conf 0.25)
+ 12 | user     | UPLOAD     | SUCCESS |          3625 |    3.78 | B2 제목 수정
+(12 rows)
+
+## B5-2 상태별 개수
+$ docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select status, count(*) from analyses_analysisjob group by status order by status;"'
+ status  | count
+---------+-------
+ FAILURE |     3
+ SUCCESS |     9
+(2 rows)
+
+## B5-3 사람별 예측
+$ docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select job_id, track_id, action_label, confidence, window_count, frame_count from analyses_personprediction order by job_id, track_id;"'
+ job_id | track_id |  action_label   | confidence | window_count | frame_count
+--------+----------+-----------------+------------+--------------+-------------
+      1 |        1 | wave            |     0.4533 |            4 |         126
+      3 |        1 | wave            |     0.4533 |            4 |         126
+      4 |        1 | sit_stand       |     0.3367 |           15 |         146
+      5 |        1 | sit_stand       |     0.3192 |           16 |         154
+      6 |        1 | wave            |     0.4533 |            4 |         126
+      9 |        1 | drink_return    |     0.2267 |            1 |          30
+      9 |        2 | leg_raise_lower |       0.25 |            1 |          30
+     10 |        1 | sit_stand       |     0.3302 |           15 |         142
+     11 |        1 | sit_stand       |     0.3133 |           15 |         144
+     12 |        1 | wave            |     0.4533 |            4 |         126
+(10 rows)
+
+## B5-4 입력 방식별 처리시간
+$ docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select input_type, count(*) as n, round(avg(processing_ms)) as avg_ms, min(processing_ms) as min_ms, max(processing_ms) as max_ms from analyses_analysisjob where processing_ms is not null group by input_type;"'
+ input_type | n | avg_ms | min_ms | max_ms
+------------+---+--------+--------+--------
+ WEBCAM     | 4 |   4396 |   4031 |   4939
+ UPLOAD     | 5 |   3399 |   1901 |   4099
+(2 rows)

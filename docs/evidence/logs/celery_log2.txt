@@ -1,0 +1,25 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-23 19:44 KST · docker compose logs celery --tail 15
+# T02: job 6 업로드(wave.mp4) received → succeeded 3.3초
+# T09: job 7 카메라 연결 거부 → WARNING 실패 저장, status FAILURE (작업은 예외 없이 끝나고 실패 상태만 DB에 기록)
+# 카메라 IP는 공개용으로 가림(<카메라-IP>)
+celery-1  | [2026-11-23 19:01:19,688: INFO/MainProcess] Task analyses.tasks.run_analysis[15d246a6-a732-4185-b564-b944d25d0e1d] received
+celery-1  | [2026-11-23 19:01:29,537: INFO/ForkPoolWorker-2] 카메라 0에서 8.0초 동안 146프레임 수집(18.2 fps)
+celery-1  | [2026-11-23 19:01:34,526: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[15d246a6-a732-4185-b564-b944d25d0e1d] succeeded in 14.837748056001146s: {'job_id': 4, 'status': 'SUCCESS'}
+celery-1  | [2026-11-23 19:21:03,704: INFO/MainProcess] Task analyses.tasks.run_analysis[3b63e296-1d0f-46fe-852c-da195564f888] received
+celery-1  | [2026-11-23 19:21:12,080: INFO/ForkPoolWorker-2] 카메라 0에서 8.0초 동안 158프레임 수집(19.7 fps)
+celery-1  | [2026-11-23 19:21:16,659: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[3b63e296-1d0f-46fe-852c-da195564f888] succeeded in 12.953773196000839s: {'job_id': 5, 'status': 'SUCCESS'}
+celery-1  | [2026-11-23 19:42:05,295: INFO/MainProcess] Task analyses.tasks.run_analysis[d9ab1195-f3a5-40ad-9fd1-dafbe9a75a9c] received
+celery-1  | [2026-11-23 19:42:08,622: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[d9ab1195-f3a5-40ad-9fd1-dafbe9a75a9c] succeeded in 3.3261320980018354s: {'job_id': 6, 'status': 'SUCCESS'}
+celery-1  | [2026-11-23 19:44:05,355: INFO/MainProcess] Task analyses.tasks.run_analysis[7395bf95-ceeb-47fc-9d7a-091f26ab25c5] received
+celery-1  | [tcp @ 0x61d0cec770c0] Connection to tcp://<카메라-IP>:8080 failed: Connection refused
+celery-1  | [2026-11-23 19:44:07,817: WARNING/ForkPoolWorker-2] job#7 실패: 카메라에 연결하지 못했습니다. 휴대폰 IP Webcam 앱이 켜져 있고 같은 네트워크인지 확인하세요.
+celery-1  | [2026-11-23 19:44:07,818: INFO/ForkPoolWorker-2] Task analyses.tasks.run_analysis[7395bf95-ceeb-47fc-9d7a-091f26ab25c5] succeeded in 2.4628857059942675s: {'job_id': 7, 'status': 'FAILURE'}
+
+# docker compose logs fastapi | grep -v "/health" | tail -6
+fastapi-1  | [2026-11-23 10:01:34,516] INFO routers.predictions: job_4.mp4: 146 frames, 1 tracks, 1 predictions, 4939 ms
+fastapi-1  | INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK
+fastapi-1  | [2026-11-23 10:21:16,651] INFO routers.predictions: job_5.mp4: 158 frames, 1 tracks, 1 predictions, 4561 ms
+fastapi-1  | INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK
+fastapi-1  | [2026-11-23 10:42:08,615] INFO routers.predictions: wave_wD0xzr2.mp4: 126 frames, 1 tracks, 1 predictions, 3299 ms
+fastapi-1  | INFO:     <celery-컨테이너> - "POST /predict/video HTTP/1.1" 200 OK

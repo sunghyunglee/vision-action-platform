@@ -1,0 +1,58 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 KST · B7 장애 주입 원본 (비밀번호 ****). 해석: docs/testing.md B7
+
+## B7a Celery Worker 정지 (job 16, task acec4f55-a298-49ed-bd4d-7f28b726b28f, 12:18~12:21)
+$ docker compose stop celery
+ ✔ Container vision_action_platform-celery-1 Stopped
+$ B7A=$(curl -s -u user:**** -F title="B7 celery 정지" -F input_type=UPLOAD -F video_file=@.../wave.mp4 http://localhost:8000/api/analyses/ | python3 -c "...['id']") && echo "id=$B7A"
+id=16
+$ sleep 15; curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/$B7A/status/
+{"id":16,"status":"PENDING","status_display":"대기","is_finished":false,"error_message":"","result_message":"","celery_task_id":"acec4f55-a298-49ed-bd4d-7f28b726b28f","prediction_count":0,"started_at":null,"finished_at":null}
+200
+$ docker compose exec redis redis-cli LLEN celery
+(integer) 1
+$ curl -s -w "\n%{http_code}\n" -u user:**** -X DELETE http://localhost:8000/api/analyses/$B7A/
+{"detail":"분석이 진행 중인 작업은 삭제할 수 없습니다."}
+409
+$ docker compose start celery
+ ✔ Container vision_action_platform-postgres-1 Healthy   0.5s
+ ✔ Container vision_action_platform-redis-1    Healthy   0.5s
+ ✔ Container vision_action_platform-fastapi-1  Healthy   0.5s
+ ✔ Container vision_action_platform-celery-1   Started
+$ sleep 15; curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/$B7A/status/
+{"id":16,"status":"SUCCESS","status_display":"완료","is_finished":true,"error_message":"","result_message":"1명의 동작을 예측했습니다.","celery_task_id":"acec4f55-a298-49ed-bd4d-7f28b726b28f","prediction_count":1,"started_at":"2026-11-24T12:20:35.148057+09:00","finished_at":"2026-11-24T12:20:38.400089+09:00"}
+200
+
+## B7b FastAPI 정지 (job 17, task 19983e54-1f72-4a57-b790-d79ba9f37a5b, 12:21~12:24)
+$ docker compose stop fastapi
+ ✔ Container vision_action_platform-fastapi-1 Stopped
+$ B7B=$(curl -s -u user:**** -F title="B7 fastapi 정지" ... http://localhost:8000/api/analyses/ | ...) && echo "id=$B7B"
+id=17
+$ sleep 10; curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/analyses/$B7B/status/
+{"id":17,"status":"FAILURE","status_display":"실패","is_finished":true,"error_message":"AI 서버(FastAPI)에 연결할 수 없습니다. fastapi 컨테이너 상태를 확인하세요.","result_message":"","celery_task_id":"19983e54-1f72-4a57-b790-d79ba9f37a5b","prediction_count":0,"started_at":"2026-11-24T12:22:13.772117+09:00","finished_at":"2026-11-24T12:22:17.778213+09:00"}
+200
+$ docker compose start fastapi
+(Started, 0.1초 — docs/testing.md B7b-4)
+$ sleep 30; curl -s http://127.0.0.1:8001/health
+(status ok · model_loaded true · error null — docs/testing.md B7b-5)
+
+## B7c Redis 정지 (12:26~12:31)
+# 원본 터미널 출력은 남기지 않았음. 아래는 분석 기록(docs/testing.md) 기준 요약.
+### B7c. Redis 정지 (12:26~)
+| # | 행동 | 기대 | 실제 | 해석 |
+|---|---|---|---|---|
+| 1 | `docker compose stop redis` | Stopped | Stopped (사용자 확인: 예상과 같음, 원본 출력 없음) | — |
+| 2 | 분석 등록 | 몇 초 뒤 500 (예상) | **500**, **105.2초** 동안 응답 없음 | 예상보다 훨씬 김. Job 행은 이미 커밋된 뒤 `on_commit` 안의 `apply_async`가 Redis 연결을 계속 재시도하다 포기 → 예외 → 500. 그동안 **gunicorn worker 1개(3개 중)가 105초 묶임** → **F8** |
+| 3 | 500 응답 본문 | 에러 종류 | `<title>RuntimeError at /api/analyses/</title>` · 메시지 "Retry limit exceeded while trying to reconnect to the Celery redis result store backend" (사용자 확인: 예상과 같음, 원본 출력 없음) | Celery의 Redis **결과 백엔드**가 재연결을 정해진 횟수만큼 재시도하다 포기 → 105초의 정체. 응답이 Django **디버그 페이지**(코드 · 설정 노출)로 나감 → **F9** |
+| 4 | DB 최근 작업 | 18 PENDING | **18 · 19 둘 다 PENDING**, started_at 없음, 제목 "B7 redis 정지" | 응답은 500인데 Job 행은 저장됨 (커밋 후 큐 등록 실패). 18번은 사용자가 응답을 기다리다 **Ctrl+C로 취소한 첫 요청**, 19번은 다시 실행한 요청(사용자 확인). 클라이언트가 취소해도 Job 행은 이미 서버에 커밋돼 남음 → 응답이 늦어 다시 시도할 때마다 **멈춘 작업이 하나씩 늘어남** |
+| 5 | `docker compose start redis` | Started | Started (사용자 확인: 예상과 같음) | — |
+| 6 | 15초 뒤 18 · 19 상태 | PENDING 유지 | **18 · 19 PENDING 유지** (사용자 확인: 예상과 같음) | 메시지가 큐에 들어간 적이 없으니 Redis가 돌아와도 **영원히 처리되지 않음**. 진행 중 상태라 API 삭제도 409 → Admin에서만 정리 가능. 개선 4번 전후 비교용으로 남겨 둠 |
+| 7 | `docker compose ps` | 5개 Up | 5개 Up. fastapi · postgres · redis healthy (redis Up 38초, fastapi Up 12분, celery Up 15분) | 모든 장애 주입 후 원상 복구 |
+
+### B7 결론 — 장애별 비교 (개선 전)
+| 꺼진 것 | 사용자 응답 | 작업 상태 | 데이터 | 평가 |
+|---|---|---|---|---|
+| Celery Worker | 202 즉시 | PENDING → Worker 복구 후 **SUCCESS** | Redis가 보관, 유실 없음 | 🟡 지연만. 단 그동안 화면 무한 대기(F4) · 삭제 409 |
+| FastAPI | 202 즉시 | **4초 만에 FAILURE** + 원인 메시지 | 예측 없음, 다시 등록 가능 | 🟢 설계대로 잘 처리 |
+| Redis | **105초 대기 후 500** (디버그 페이지) | **PENDING 영구** (18 · 19) | 큐 등록 실패, 복구돼도 처리 안 됨 | 🔴 가장 취약. F5 · F8 · F9 |
+→ 발표 한 줄: "세 서비스를 하나씩 꺼 보니, AI 서버 장애는 4초 만에 실패로 안내되고 Worker 장애는 Redis 덕에 유실이 없었지만, **Redis 장애는 요청을 105초 붙잡고 작업을 영원히 멈춘 채 남겼다**. 그래서 개선 4번(등록 실패 시 FAILURE 저장 · 짧은 재시도)과 5번(폴링 시간 제한)을 한다."

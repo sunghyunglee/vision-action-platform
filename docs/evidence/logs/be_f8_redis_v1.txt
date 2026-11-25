@@ -1,0 +1,36 @@
+# F8 개선 후 재측정: Redis 정지 상태에서 분석 등록 (2026-11-24 20:32 KST, URL /api/v1/)
+# 개선 전(B7c-2, be_b7_fault.txt): 105.2초 동안 응답 없음 → 500 (DEBUG 페이지) → job 18·19 영구 PENDING
+
+$ cd ~/vision_action_platform && docker compose stop redis
+ ✔ Container vision_action_platform-redis-1 Stopped                                                                             0.2s
+
+$ curl -s -w "\n%{http_code} %{time_total}s\n" -u user:**** -F title="F8  재측정 redis 정지" -F input_type=UPLOAD -F video_file=@.../wave.mp4 http://localhost:8000/api/v1/analyses/
+{"id":34,"task_id":"f34c11b5-25ea-4fb6-8988-40205fec9494","status":"FAILURE","detail":"작업 대기열(Redis)에 등록하지 못했습니다. Redis와 Celery Worker 상태를 확인한 뒤 다시 시도하세요."}
+503 16.139020s
+
+$ docker compose logs django --tail 30 | grep "대기열"
+django-1  | [2026-11-24 20:32:21 +0900] ERROR analyses.views: job#34 대기열 등록 실패: RuntimeError: 
+
+$ docker compose start redis
+ ✔ Container vision_action_platform-redis-1 Started
+
+# 판정
+# - 응답: 500 디버그 페이지 → 503 + JSON 안내 문구 (F8·F9 해결)
+# - 시간: 105.2초 → 16.1초 (약 6.5배 단축, 다만 목표 "수 초"보다는 김 → 남은 개선 후보)
+# - 작업 상태: 영구 PENDING → 즉시 FAILURE + error_message (F5 해결)
+# - 로그: 실패가 ERROR 한 줄로 남음, KST(+0900) (F1·F7 관련)
+
+# 복구 확인 (20:33 KST, Redis 다시 켠 뒤)
+$ curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/v1/analyses/34/status/
+{"id":34,"status":"FAILURE","status_display":"실패","is_finished":true,"is_stale":false,"error_message":"작업 대기열(Redis)에 등록하지 못했습니다. Redis와 Celery Worker 상태를 확인한 뒤 다시 시도하세요.","result_message":"","celery_task_id":"f34c11b5-25ea-4fb6-8988-40205fec9494","prediction_count":0,"started_at":null,"finished_at":"2026-11-24T20:32:21.893974+09:00"}
+200
+
+$ curl -s -w "\n%{http_code} %{time_total}s\n" -u user:**** -F title="F8  재측정 복구 후" -F input_type=UPLOAD -F video_file=@.../wave.mp4 http://localhost:8000/api/v1/analyses/
+{"id":35,"task_id":"337b58fc-a2db-4b42-abc9-d676cc38ce01","status":"PENDING","status_url":"/api/v1/analyses/35/status/"}
+202 0.134713s
+
+$ sleep 8; curl -s -w "\n%{http_code}\n" -u user:**** http://localhost:8000/api/v1/analyses/35/status/
+{"id":35,"status":"SUCCESS","status_display":"완료","is_finished":true,"is_stale":false,"error_message":"","result_message":"1명의 동작을 예측했습니다.","celery_task_id":"337b58fc-a2db-4b42-abc9-d676cc38ce01","prediction_count":1,"started_at":"2026-11-24T20:33:53.577796+09:00","finished_at":"2026-11-24T20:33:58.091324+09:00"}
+200
+
+# 판정: 34번은 끝난 작업(FAILURE, finished_at 있음)으로 남고, Redis 복구 뒤 새 등록은 202 0.13초 → 4.5초 뒤 SUCCESS. 수동 조치 없이 정상 복귀.

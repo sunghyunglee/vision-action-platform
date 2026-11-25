@@ -1,0 +1,20 @@
+# 개선 전 기록(/api/v1 이전) · 2026-11-24 주소 정리(dce0e1c) 전에 찍은 기록입니다. 지금 API 주소는 /api/v1/analyses/ 입니다.
+# 2026-11-24 09:23 KST · 오류: PC 재부팅 후 첫 분석에서 AI 서버 503
+# 증상(화면): AI 서버 오류(503): 모델이 준비되지 않았습니다: 모델 파일이 없습니다: /app/models/rf_action_baseline.joblib, /app/models/rf_feature_columns.json, /app/models/rf_training_info.json (README의 '모델 준비' 참고)
+#   → 서버는 죽지 않고 작업이 FAILURE + 사유로 저장됨 (T09 예외 처리)
+# 확인한 곳: PC의 ai_service/models 에는 파일 4개가 그대로 있음. fastapi 컨테이너는 전날 만든 것이 Docker Desktop 시작과 함께 먼저 올라옴
+# 원인(추정): Docker Desktop 시작 직후 WSL 폴더(bind mount) 연결 전에 FastAPI가 시작되어 빈 /app/models를 읽음
+# 바꾼 것: docker compose restart fastapi (코드 변경 없음)
+# 해결 확인: 모델 로드 로그 정상
+$ ls -la ai_service/models
+total 6512
+drwxr-xr-x 2 dev dev    4096 Nov 23 16:53 .
+drwxrwxrwx 8 dev dev    4096 Nov 23 16:56 ..
+-rw-r--r-- 1 dev dev  365289 Nov 23 16:53 rf_action_baseline.joblib
+-rw-r--r-- 1 dev dev   25202 Nov 23 16:53 rf_feature_columns.json
+-rw-r--r-- 1 dev dev     326 Nov 23 16:53 rf_training_info.json
+-rw-r--r-- 1 dev dev 6255593 Nov 23 16:53 yolo11n-pose.pt
+$ docker compose restart fastapi
+$ docker compose logs fastapi --tail 20 | grep "모델 로드"
+fastapi-1  | [2026-11-24 00:24:17,179] INFO services.model_loader: Action 모델 로드: 6 classes, 30 steps × 38 = 1140 features
+fastapi-1  | [2026-11-24 00:24:18,463] INFO services.pose_pipeline: Pose 모델 로드: yolo11n-pose.pt (imgsz=640, conf=0.25, tracker=bytetrack.yaml)
