@@ -15,7 +15,7 @@
 
 compose 는 `./ai_service/models` 를 `/app/models` 에 **읽기 전용**으로 연결합니다. 모델을 이미지에 굽지 않아 파일만 바꿔 다시 시작하면 됩니다.
 
-### 시작할 때 검사 (`services/model_loader.py` `load_action_model()`)
+### 기동 시 검증 (`services/model_loader.py` `load_action_model()`)
 
 | 검사 | 실패하면 |
 |---|---|
@@ -80,7 +80,7 @@ FastAPI 는 무거운 `process_video` · `predict_tracks` 를 `run_in_threadpool
 
 같은 영상을 4번 넣었을 때 `wave` · confidence **0.4533** 이 매번 같았습니다 (B5 · DB 직접 조회). 모델과 Feature 계산이 결정적이라는 뜻이고, 낮은 값은 모델 자체의 한계입니다.
 
-## 6. 데이터 한계 (정확도를 올릴 수 없는 이유)
+## 6. 데이터 한계
 
 | 사실 | 근거 |
 |---|---|

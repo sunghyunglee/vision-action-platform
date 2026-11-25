@@ -31,7 +31,7 @@ docker compose exec django python manage.py test     # Ran 51 tests · OK (Postg
 
 한 번 실패한 기록: 2026-11-24 15:51 Docker(PostgreSQL) 에서 47개 중 9개 ERROR (`test_camera_preview` · 테스트의 `res.close()` 가 테스트 DB 연결까지 닫음) → 6521481 에서 수정 → 16:06 47개 통과. [tests_docker_20261124_fail.txt](evidence/logs/tests_docker_20261124_fail.txt) · [_pass.txt](evidence/logs/tests_docker_20261124_pass.txt)
 
-## 2. 기능 확인 T01 ~ T10
+## 2. 기능 시나리오 T01 ~ T10
 
 화면 · DB · 로그로 직접 확인한 10개 기능입니다. 증거 목록은 [evidence/README.md](evidence/README.md#t01--t10).
 
@@ -77,7 +77,7 @@ docker compose exec django python manage.py test     # Ran 51 tests · OK (Postg
 
 개선 전 영구 PENDING 으로 남은 job 18 · 19 는 Admin 에서 그대로 보존했습니다: [images/admin_pending_jobs_f8.png](images/admin_pending_jobs_f8.png)
 
-## 4. 찾은 점 F1 ~ F9
+## 4. 도출 이슈 F1 ~ F9
 
 | # | 찾은 점 | 확인 | 처리 |
 |---|---|---|---|

@@ -20,14 +20,14 @@
 - **FastAPI 는 DB 를 모릅니다.** 영상 파일을 받아 JSON 만 돌려주므로, 모델을 바꿔도 Django 쪽 코드는 그대로입니다.
 - **업무 데이터는 PostgreSQL 에만** 있습니다. Redis 결과 키에는 `{job_id, status}` 만 남고 1일 뒤 삭제됩니다.
 
-## 2. 그림 읽는 법
+## 2. 다이어그램 표기
 
 - 위 줄 ① → ⑧: 분석 요청이 AI 까지 가는 길 (브라우저 → Django · DRF → Redis → Celery → FastAPI → YOLO Pose → 38-D → RandomForest)
 - 아래 줄 ⑨ → ⑫: 결과가 저장되고 화면으로 돌아오는 길 (Celery 저장 → PostgreSQL → DRF 조회 → 브라우저)
 - 화살표 위 글자 = 코드 호출과 데이터 형식, 파란 점선 = Django ORM 이 PostgreSQL 에 쓰는 지점 (INSERT PENDING · UPDATE STARTED / FAILURE)
 - 그림 아래 **버튼 흐름** 칸 = 「AI 분석 시작」 한 번이 지나는 `파일:줄 → 함수` 21칸, **주소 표** = 모든 엔드포인트
 
-## 3. 버튼별 흐름
+## 3. 기능별 호출 흐름
 
 ### 3-1. 「AI 분석 시작」 (노드 ① ~ ⑫ 전부)
 
@@ -55,9 +55,9 @@
 | 20 | ⑪ | `analyses.js:128` · `:139` → `views.py:118-119` | `poll()` → `GET …/status/` → `@action status()` | 2초마다 · 예측 수는 `Count` 만 |
 | 21 | ⑫ | `analyses.js:162` | `showResult()` → 결과 표 · `#detail-link`(index.html:81) | `is_uncertain` 이면 「판단 불확실」 |
 
-### 3-2. 다른 버튼
+### 3-2. 기타 화면 기능
 
-| 버튼 | 흐름 (파일 : 줄) | 노드 |
+| 기능 | 호출 흐름 (파일 : 줄) | 노드 |
 |---|---|---|
 | 탭 「영상 업로드 / IP Webcam」 | `index.html:11` · `:12` → `analyses.js` 가 입력 칸만 전환 (서버 요청 없음) | ① |
 | 「미리보기 켜기」 | `index.html:46` → `analyses.js:42` · `:46` `img.src` → `analyses/urls.py:12` → `stream_views.py:55-57` `camera_stream()` (`@login_required` · `@require_GET`) → `:59` `get_allowed_camera_url()` → `:65` `requests.get` → `:78` `StreamingHttpResponse` (최대 60초) | ① → 휴대폰 |
@@ -107,7 +107,7 @@
 | ⑩ → ⑪ | `visible_to(user)` | `views.py:54` | 일치 |
 | ⑪ → ⑫ | 상태 JSON · 결과 JSON · 2초 폴링 · 최대 10분 | `analyses.js:7` `POLL_MS` · `settings.POLL_TIMEOUT_SECONDS=600` | 일치 |
 
-### 4-3. 이번에 고친 곳 (v4 → v5)
+### 4-3. 다이어그램 변경 이력 (v4 → v5)
 
 | 무엇 | 전 | 후 |
 |---|---|---|
@@ -121,6 +121,6 @@
 
 참고: `retrieve()` · `list()` 는 `ModelViewSet` 이 물려준 DRF 기본 메서드라 `views.py` 에 따로 정의돼 있지 않습니다 (`get_queryset()` `:54` 만 다시 씀).
 
-## 5. 파이프라인 그림
+## 5. 파이프라인 다이어그램
 
 [images/pipeline.png](images/pipeline.png) 는 같은 기준으로 **파일 단위**를 그립니다: ① 설정 파일 (`project.json` · `models/` · `.env` · `compose.yaml`) → ② 서버 시작 (`lifespan` · `load_action_model` · `PosePipeline`) → ③ 입력 (URL · `analyses.js` · serializer · `create` · Redis · `_prepare_video`) → ④ 추론 → ⑤ 저장 · 표시 → ⑥ 검증 (테스트 3개 파일). 위 대조표와 같은 파일 · 함수 이름을 쓰고, 생성기 안의 함수 이름이 코드에 있는지 스크립트로 다시 확인했습니다.

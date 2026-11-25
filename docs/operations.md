@@ -2,7 +2,7 @@
 
 > 기준: `compose.yaml` · `.env.example` · `backend/config/settings.py` (40d3916)
 
-## 1. 실행
+## 1. 설치 · 실행
 
 준비: Windows 11 + WSL2 Ubuntu + Docker Desktop (WSL integration 켜기). GPU 없이 CPU 로 동작합니다.
 
@@ -38,7 +38,7 @@ docker compose exec django python manage.py test     # 51 tests · OK
 - `TZ=Asia/Seoul` 은 fastapi · django · celery 의 **로그 시각**만 KST 로 맞춥니다. DB 는 `USE_TZ=True` 로 UTC 저장.
 - 증거: [evidence/logs/compose_ps_v1.txt](evidence/logs/compose_ps_v1.txt) (django 도 healthy) · 개선 전 [compose_ps.txt](evidence/logs/compose_ps.txt)
 
-## 3. `.env` 항목
+## 3. 환경 변수 (`.env`)
 
 | 묶음 | 키 | 기본 · 예시 | 설명 |
 |---|---|---|---|
@@ -73,7 +73,7 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {...}   # 결과 저장소 재연결�
 | `GET http://localhost:8000/api/v1/health/` | `SELECT 1` · Redis ping (2초) | 200 `{"status":"ok","checks":{"db":{"ok":true,"ms":0.7},"redis":{"ok":true,"ms":1.7}}}` | 503 `status: "error"` → compose `unhealthy` |
 | `GET http://localhost:8001/health` | 모델 · Pose 로드 상태 | 200 `status: "ok"` · `n_features 1140` | 200 `status: "degraded"` + `error` |
 
-## 5. 로그 읽기
+## 5. 로그 확인
 
 ```bash
 docker compose logs -f django celery            # 작업 흐름
@@ -93,7 +93,7 @@ celery · fastapi 예는 코드(`tasks.py` · `predictions.py`)의 로그 형식
 
 개선 전에는 성공한 작업의 단계 로그가 없고 (F2), FastAPI 로그에 파일 이름만 있었고 (F3), fastapi 로그만 UTC 라 9시간이 어긋났습니다 (F7) → [improvements.md](improvements.md)
 
-## 6. 시연 설정 (운영 전에 바꿀 것)
+## 6. 시연 설정 · 운영 전환 항목
 
 | 지금 | 이유 | 운영 |
 |---|---|---|
@@ -102,6 +102,6 @@ celery · fastapi 예는 코드(`tasks.py` · `predictions.py`)의 로그 형식
 | Django 가 `/media/` 직접 제공 | nginx 없이 실행 | nginx · 오브젝트 스토리지 |
 | gunicorn 접근 로그 없음 | 앱 로그 `job#N` 로 대신 | 필요하면 `--access-logfile -` |
 
-## 7. 재시작 뒤
+## 7. 재기동 시 주의
 
 PC 재부팅 직후 첫 분석이 `AI 서버 오류(503): 모델이 준비되지 않았습니다` 로 실패하면 `docker compose restart fastapi` 후 다시 시도합니다 (Docker Desktop 이 WSL 폴더 연결 전에 fastapi 를 먼저 올린 경우 · [troubleshooting.md](troubleshooting.md)).

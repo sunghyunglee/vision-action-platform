@@ -15,7 +15,7 @@
 | CSRF | 세션 로그인 상태의 POST · PATCH · DELETE 는 `X-CSRFToken` 헤더 필요 (`analyses.js:18` 이 폼의 `csrfmiddlewaretoken` 값을 읽어 보냄) |
 | 허용 안 하는 메서드 | `PUT` 405 (`http_method_names` 에서 제외) |
 
-## 엔드포인트 한눈에
+## 엔드포인트 목록
 
 | 메서드 | 주소 | 처리 함수 | 응답 코드 |
 |---|---|---|---|
@@ -79,7 +79,7 @@ curl -u <회원아이디>:<비밀번호> -F input_type=UPLOAD -F title="손 흔�
 ```
 
 - `prediction_count` 는 `annotate(Count("predictions"))` 로 셉니다. 예측 행은 읽지 않습니다 (쿼리 4 → 3).
-- `is_stale` 이 true 면 화면은 폴링을 멈추고 「작업이 멈춘 것 같습니다」 안내를 띄웁니다. 기준은 [data-model.md](data-model.md#상태와-멈춘-작업).
+- `is_stale` 이 true 면 화면은 폴링을 멈추고 「작업이 멈춘 것 같습니다」 안내를 띄웁니다. 기준은 [data-model.md](data-model.md#작업-상태--고착-작업-판정).
 - 화면은 2초(`POLL_MS`)마다 부르고, `POLL_TIMEOUT_SECONDS`(600초)가 지나면 멈춥니다.
 
 ## 상세 `GET /api/v1/analyses/{id}/`

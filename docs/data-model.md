@@ -88,7 +88,7 @@ class AnalysisJobQuerySet(models.QuerySet):
 
 이전에는 API 와 화면이 각자 `filter(user=…)` 를 썼습니다. 최적화 커밋 40dd39c 에서 한 곳으로 모았고 `test_visible_to` · `test_detail_page_and_api_follow_same_rule` 로 확인합니다.
 
-## 상태와 멈춘 작업
+## 작업 상태 · 고착 작업 판정
 
 ```text
 PENDING ──(Celery 가 꺼냄)──▶ STARTED ──▶ SUCCESS
@@ -105,7 +105,7 @@ PENDING ──(Celery 가 꺼냄)──▶ STARTED ──▶ SUCCESS
 
 멈춘 작업은 삭제를 허용하고 (409 → 204), 화면은 폴링을 멈춥니다.
 
-## 어디에 무엇이 남나
+## 저장소별 데이터 보관
 
 | 저장소 | 남는 것 | 수명 |
 |---|---|---|

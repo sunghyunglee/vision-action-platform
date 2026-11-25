@@ -16,7 +16,7 @@
 | Docker(PostgreSQL) 에서 테스트 9개 ERROR (`test_camera_preview`) | 테스트 안의 `res.close()` (브라우저 끊김 흉내) 가 `request_finished` 신호 → `close_old_connections` 를 불러 테스트용 PostgreSQL 연결을 닫음 (`OperationalError: the connection is closed` 9번) · 기능 고장이 아니라 테스트 환경 문제 | 6521481: 테스트 클라이언트 대신 `RequestFactory` 로 뷰를 직접 부르고 신호를 잠시 떼어 냄 | 47개 통과 → 정리 뒤 51개 통과 ([tests_docker_20261124_fail.txt](evidence/logs/tests_docker_20261124_fail.txt) · [tests_docker_dedupe_pass.txt](evidence/logs/tests_docker_dedupe_pass.txt)) |
 | 주소창에 `/accounts/logout/` 을 치면 405 | Django 5.2 `LogoutView` 는 POST 만 받음 | 화면 오른쪽 위 「로그아웃」 버튼 (`base.html` POST 폼) 사용 | [logout_post_302.png](images/logout_post_302.png) (POST → 302 → `/accounts/login/`) |
 | 일반 회원이 「대시보드」로 가면 로그인 화면 | `@staff_member_required` → 302 `/admin/login/` | 관리자 계정으로 접속 (의도된 동작) | [dashboard_user_denied.png](images/dashboard_user_denied.png) |
-| 웹캠 손 흔들기가 `sit_stand` · `drink_return` 으로 나옴 | 모델이 한 사람 · 클립 6개로 학습됨 · 해상도 · 방향 · Pose conf 를 바꿔도 같음 | 코드는 그대로 두고 0.55 미만은 「판단 불확실」로 표시 | [webcam_retry_compare.txt](evidence/logs/webcam_retry_compare.txt) · [ai-inference.md](ai-inference.md#6-데이터-한계-정확도를-올릴-수-없는-이유) |
+| 웹캠 손 흔들기가 `sit_stand` · `drink_return` 으로 나옴 | 모델이 한 사람 · 클립 6개로 학습됨 · 해상도 · 방향 · Pose conf 를 바꿔도 같음 | 코드는 그대로 두고 0.55 미만은 「판단 불확실」로 표시 | [webcam_retry_compare.txt](evidence/logs/webcam_retry_compare.txt) · [ai-inference.md](ai-inference.md#6-데이터-한계) |
 
 포트와 컨테이너 확인
 

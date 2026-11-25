@@ -2,7 +2,7 @@
 
 > 백엔드 분석([testing.md](testing.md))에서 찾은 문제를 **발견 → 원인 → 바꾼 것 → 확인** 순서로 정리했습니다. 개선 전 기준 9a01b0c → 개선 후 40d3916 (2026-11-24, 37개 파일).
 
-## 1. 한눈에
+## 1. 개선 요약
 
 | # | 발견 | 바꾼 것 | 커밋 | 확인 |
 |---|---|---|---|---|
@@ -24,7 +24,7 @@
 - **바꾼 것**: `config/urls.py:9` `path("api/v1/", include("config.api_urls"))` → `config/api_urls.py` (`app_name = "api"`) 가 `analyses.api_urls` · `auth/me/` · `health/` 를 모읍니다. `create()` 는 `reverse("api:analysis-status")` 로 `status_url` 을 만들고, `index.html` 은 `data-list-url` 등으로 JS 에 주소를 넘깁니다.
 - **확인**: `test_api_urls_are_versioned` · `test_old_api_urls_removed` (옛 주소 404) · `test_create_returns_status_url_from_reverse` · `test_index_passes_api_urls_to_js`
 
-### 개선 4 · 등록 실패 처리 (가장 큰 개선)
+### 개선 4 · 큐 등록 실패 처리
 
 ```text
 개선 전  POST ──▶ Job 커밋(PENDING) ──▶ on_commit: apply_async ──(Redis 없음, 재연결 반복 105.2초)──▶ 500 디버그 페이지
@@ -78,11 +78,11 @@
 
 정리 뒤 화면: [after_index_job31.png](images/after_index_job31.png) · [after_detail_job31.png](images/after_detail_job31.png) · [after_dashboard.png](images/after_dashboard.png) (작업 28 · 예측 26)
 
-## 5. 그대로 둔 것
+## 5. 미반영 항목
 
 | 항목 | 이유 |
 |---|---|
 | F6 404 문구의 모델 이름 | DRF 기본 동작 · 보안 영향 작음 |
-| F9 · `DEBUG=True` · BasicAuth · Django 가 `/media/` 제공 | 시연 설정. 운영 전환 목록은 [operations.md](operations.md#6-시연-설정-운영-전에-바꿀-것) |
-| 모델 정확도 | 학습 데이터 한계 → [ai-inference.md](ai-inference.md#6-데이터-한계-정확도를-올릴-수-없는-이유) |
+| F9 · `DEBUG=True` · BasicAuth · Django 가 `/media/` 제공 | 시연 설정. 운영 전환 목록은 [operations.md](operations.md#6-시연-설정--운영-전환-항목) |
+| 모델 정확도 | 학습 데이터 한계 → [ai-inference.md](ai-inference.md#6-데이터-한계) |
 | 개선 후 처리 시간 재측정 | 하지 않았음 (미확인). 아키텍처가 그대로라 B8 값을 기준으로 둠 |
